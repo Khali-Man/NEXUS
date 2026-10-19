@@ -1,0 +1,35 @@
+$ tsx tools/test-database.ts && vitest run
+
+ RUN  v3.2.7 /workspace/NEXUS
+
+stdout | tests/scenarios.test.ts
+Synthetic accounts, units and nine scenarios seeded.
+
+ ✓ tests/scenarios.test.ts (45 tests) 5933ms
+stdout | tests/realtime.test.ts
+Synthetic accounts, units and nine scenarios seeded.
+
+stdout | tests/realtime.test.ts
+NEXUS API listening on 4200
+
+ ✓ tests/realtime.test.ts (3 tests) 2993ms
+   ✓ delivers committed outbox envelopes only to an authorised agency and citizen-safe hints  1138ms
+   ✓ replaces a terminated notification connection and resumes authoritative realtime delivery  776ms
+stdout | tests/integration.test.ts
+Synthetic accounts, units and nine scenarios seeded.
+
+ ✓ tests/integration.test.ts (20 tests) 5548ms
+   ✓ persistent secured workflow > expires offers and returns to waiting with an explicit appended event  382ms
+   ✓ persistent secured workflow > applies membership and agency scope to details, commands, replay and export  423ms
+   ✓ persistent secured workflow > produces redacted CSV/PDF and unsigned checkpoints with truthful metrics  2098ms
+ ✓ tests/localisation.test.ts (2 tests) 234ms
+stdout | tests/domain.test.ts
+🌐 i18next is made possible by our own product, Locize — consider powering your project with managed localization (AI, CDN, integrations): https://locize.com 💙
+
+ ✓ tests/domain.test.ts (5 tests) 19ms
+
+ Test Files  5 passed (5)
+      Tests  75 passed (75)
+   Start at  16:02:48
+   Duration  18.97s (transform 525ms, setup 0ms, collect 2.19s, tests 14.73s, environment 2ms, prepare 602ms)
+

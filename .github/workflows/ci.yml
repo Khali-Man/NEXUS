@@ -1,0 +1,32 @@
+name: NEXUS verification
+on: [push, pull_request]
+jobs:
+  simulator:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+      - run: npm install --global pnpm@11.25.0
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm setup
+      - run: pnpm lint && pnpm typecheck && pnpm test && pnpm build
+      - run: pnpm exec playwright install --with-deps chromium
+      - name: Browser flows
+        shell: bash
+        run: |
+          pnpm start > /tmp/nexus-dev.log 2>&1 &
+          for attempt in {1..60}; do
+            if curl --fail --silent http://localhost:4000/api/v1/health && curl --fail --silent http://localhost:3000/login > /dev/null; then break; fi
+            sleep 1
+          done
+          PLAYWRIGHT_CHROMIUM_EXECUTABLE="$(find "$HOME/.cache/ms-playwright" -name chrome -type f | head -1)" pnpm test:e2e
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: nexus-verification
+          path: |
+            artifacts/
+            test-results/

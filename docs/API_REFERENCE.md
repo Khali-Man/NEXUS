@@ -1,0 +1,21 @@
+# REST and realtime API
+
+Base `/api/v1`; generated route inventory and shared Zod request schemas at `/api/v1/openapi.json`. `POST` commands require `Idempotency-Key` (maximum 128 characters); incident mutations include `expected_version` and a 3–500 character reason. Errors use `{code,message,correlationId,retryable,details?}`. Query UUIDs, dates and bounded bodies are validated. Collections use bounded limit/offset or sequence/time cursors.
+
+| Scope             | Endpoints                                                                                                                                                                                 |
+| ----------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Public            | GET health, demo/reference-data; POST demo/incidents; GET demo/incidents/:reference/status; POST demo/incidents/:reference/feedback                                                       |
+| Session           | POST auth/login, auth/logout; GET auth/me                                                                                                                                                 |
+| CAD               | GET cad/overview, cad/incidents, cad/incidents/:id, :id/events, :id/candidates, :id/duplicates, cad/units, cad/network                                                                    |
+| Operator commands | POST cad/incidents/:id/triage, ready, assignments, reassign, cancel, resolve, close, note, link; cad/assignments/:id/withdraw                                                             |
+| Responder         | GET responder/assignments, assignments/:id, profile, sync; POST assignments/:id/accept, decline, en-route, arrived, outcome; heartbeat                                                    |
+| Assurance         | GET assurance/metrics, incidents, incidents/:id/replay, audit/verify, audit/checkpoints, reviews, reports/export; POST audit/checkpoint, incidents/:id/reviews, incidents/:id/corrections |
+| Simulator         | GET simulator/scenarios, settings, tamper-demo; POST scenarios/:slug/run, scenarios/:runId/step, reset, faults, settings                                                                  |
+
+Citizen status/feedback require `X-Receipt-Token`. Tokens are 256-bit HMAC-derived capabilities; only SHA-256 digests are stored with incidents, and retry result rows omit token values. Fragments are removed from browser URLs after session-storage exchange. No token query-string tracking or analytics.
+
+Sessions use HttpOnly SameSite=Strict cookies, configurable Secure in TLS deployments, eight-hour expiry and PostgreSQL storage. Login throttles failures. Mutation origin validation rejects unapproved origins. Responses use no-store/no-referrer. Every privileged route enforces role and agency; field routes also enforce current fictional membership. Supervisor is distinct from admin. `DEMO_MODE=false` refuses simulator actions and new local-demo logins.
+
+Socket.IO uses `/socket.io` with `addTrailingSlash=false` through same-origin proxies. Authentication is a server session or private reference+capability. Server-selected rooms are agency, unit or receipt. Event envelope: `{eventId,incidentId,sequence,aggregateVersion,emittedAt,type,safePayload,simulation:true}`. Citizen rooms receive sync hints only. REST replay repairs dropped events; do not infer acceptance from socket delivery.
+
+Exports support `from`, `to`, `q`, `status`, `category` and `format=csv|pdf`; the bounded export reports its record count/total and omissions. Coordinates, narratives, user identities and receipt material are excluded. Large datasets require pagination; export limit is explicitly disclosed rather than silently claiming full coverage.
