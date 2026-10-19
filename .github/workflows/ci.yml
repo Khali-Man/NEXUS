@@ -12,7 +12,7 @@ jobs:
       - run: npm install --global pnpm@11.25.0
       - run: pnpm install --frozen-lockfile
       - run: pnpm setup
-      - run: pnpm lint && pnpm typecheck && pnpm test && pnpm build
+      - run: pnpm lint && pnpm typecheck && pnpm test && pnpm test:routing && pnpm build
       - run: pnpm exec playwright install --with-deps chromium
       - name: Browser flows
         shell: bash

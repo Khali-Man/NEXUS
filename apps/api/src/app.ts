@@ -9,6 +9,8 @@ import { parse, serialize } from "cookie";
 import { randomBytes, randomUUID } from "node:crypto";
 import PDFDocument from "pdfkit";
 import { en } from "../../../packages/i18n/src/catalogue";
+import { createCheckpoint, signatureStatus, trustedKeys } from "./audit";
+import { mapConfig, mapStyle, roadsFile } from "./maps";
 import { z } from "zod";
 import { zodToJsonSchema } from "zod-to-json-schema";
 import {
@@ -19,11 +21,7 @@ import {
   normalizeEvent,
   appendEvent,
 } from "./db";
-import {
-  digest,
-  verifyChain,
-  canonical,
-} from "../../../packages/domain/src/index";
+import { digest, verifyChain } from "../../../packages/domain/src/index";
 import {
   login,
   createIncident,
@@ -231,11 +229,16 @@ route("post", "/auth/logout", all, async (req, res) => {
 route("get", "/demo/reference-data", null, async () => ({
   categories,
   landmarks,
-  mapStyleUrl: process.env.MAP_STYLE_URL || null,
+  ...mapConfig(),
   simulation: true,
   disclosure:
     "RESEARCH SIMULATION — NOT CONNECTED TO EMERGENCY SERVICES. THIS APPLICATION CANNOT SUMMON HELP.",
 }));
+route("get", "/demo/map-style", null, async () => mapStyle());
+route("get", "/demo/roads", null, async (_req, res) => {
+  res.locals.streaming = true;
+  res.type("application/geo+json").sendFile(roadsFile());
+});
 route("post", "/demo/incidents", null, async (req) => createReport(req));
 route("get", "/demo/incidents/:reference/status", null, async (req) => {
   const i = await requireReceipt(
@@ -360,7 +363,7 @@ route("get", "/cad/incidents/:id/duplicates", operators, async (req) => {
   };
 });
 route("get", "/cad/incidents/:id/candidates", ["dispatcher"], async (req) => ({
-  items: await candidates(String(req.params.id), req.user),
+  items: await candidates(String(req.params.id), req.user, undefined, true),
 }));
 for (const action of [
   "triage",
@@ -531,24 +534,54 @@ route("get", "/assurance/audit/verify", ["supervisor"], async (req) =>
   ),
 );
 route("post", "/assurance/audit/checkpoint", ["supervisor"], async (req) => {
-  checkpointInput.parse(req.body);
-  const result = await verifyAudit(req.user);
+  const { reason } = checkpointInput.parse(req.body);
   return idempotent(req, req.user.id, "checkpoint", async (db) => {
-    const root = digest(canonical(result.results));
-    return (
-      await db.query(
-        "INSERT INTO audit_checkpoints(scope,root_hash) VALUES($1,$2) RETURNING *",
-        [req.user.agency_id, root],
-      )
-    ).rows[0];
+    return createCheckpoint(db, req.user.agency_id, reason, req.user.id);
   });
 });
 route("get", "/assurance/audit/checkpoints", ["supervisor"], async (req) => ({
-  items: await sql(
-    "SELECT * FROM audit_checkpoints WHERE scope=$1 ORDER BY checkpoint_at DESC LIMIT 50",
-    [req.user.agency_id],
-  ),
+  items: (
+    await sql(
+      "SELECT * FROM audit_checkpoints WHERE scope=$1 ORDER BY checkpoint_at DESC LIMIT 50",
+      [req.user.agency_id],
+    )
+  ).map((row) => {
+    let registry;
+    try {
+      registry = trustedKeys();
+    } catch {
+      registry = { keys: [] };
+    }
+    return { ...row, signatureVerification: signatureStatus(row, registry) };
+  }),
 }));
+route(
+  "get",
+  "/assurance/audit/checkpoints/:id/bundle",
+  ["supervisor"],
+  async (req, res) => {
+    const checkpoint = (
+      await sql("SELECT * FROM audit_checkpoints WHERE id=$1 AND scope=$2", [
+        req.params.id,
+        req.user.agency_id,
+      ])
+    )[0];
+    if (!checkpoint) throw new Fault(404, "CHECKPOINT_NOT_FOUND");
+    if (!checkpoint.signed_payload)
+      throw new Fault(409, "LEGACY_UNSIGNED_CHECKPOINT");
+    const events = (
+      await sql(
+        'SELECT e.* FROM incident_events e JOIN jsonb_to_recordset($1::jsonb) AS h("incidentId" uuid,sequence int) ON e.incident_id=h."incidentId" AND e.sequence<=h.sequence JOIN incidents i ON i.id=e.incident_id WHERE i.agency_id=$2 ORDER BY e.incident_id,e.sequence',
+        [JSON.stringify(checkpoint.signed_payload.heads), req.user.agency_id],
+      )
+    ).map(normalizeEvent);
+    res.setHeader(
+      "Content-Disposition",
+      `attachment; filename="nexus-checkpoint-${checkpoint.id}.json"`,
+    );
+    return { checkpoint, events, simulation: true };
+  },
+);
 for (const [suffix, action] of [
   ["reviews", "review"],
   ["corrections", "correction"],
@@ -629,7 +662,7 @@ route("get", "/assurance/reports/export", ["supervisor"], async (req, res) => {
         .moveDown()
         .fontSize(10)
         .text(
-          `${i.reference} | ${en.category[i.category as keyof typeof en.category]} | ${en.status[i.status as keyof typeof en.status]} | ${i.created_at}\n${en.assurance.triage}: ${i.triage_seconds || en.common.unknown}; ${en.assurance.offer}: ${i.offer_seconds || en.common.unknown}; ${en.assurance.ack}: ${i.acknowledgement_seconds || en.common.unknown}; ${en.assurance.arrival}: ${i.reported_arrival_seconds || en.common.unknown}`,
+          `${i.reference} | ${en.category[i.category as keyof typeof en.category]} | ${en.status[i.status as keyof typeof en.status]} | ${i.created_at}\n${en.assurance.triage}: ${i.triage_seconds ?? en.common.unknown}; ${en.assurance.offer}: ${i.offer_seconds ?? en.common.unknown}; ${en.assurance.ack}: ${i.acknowledgement_seconds ?? en.common.unknown}; ${en.assurance.arrival}: ${i.reported_arrival_seconds ?? en.common.unknown}`,
         );
     doc.end();
     return;

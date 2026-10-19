@@ -5,8 +5,17 @@ import { pool, sql } from "./db";
 import { requireReceipt } from "./service";
 import { subscribeToOutbox } from "./notifications";
 export const server = createServer(app);
+const allowedOrigins = (
+  process.env.ALLOWED_ORIGINS ||
+  "http://localhost:3000,http://localhost:5173,http://localhost:5174"
+).split(",");
 export const io = new Server(server, {
   addTrailingSlash: false,
+  allowRequest: (req, callback) =>
+    callback(
+      null,
+      !req.headers.origin || allowedOrigins.includes(req.headers.origin),
+    ),
   cors: {
     origin: (
       process.env.ALLOWED_ORIGINS ||
@@ -70,6 +79,55 @@ io.on("connection", async (socket) => {
   }
 });
 const inFlight = new Set<Promise<void>>();
+async function emitAuthorized(
+  room: string,
+  payload: any,
+  agencyId: string,
+  unitId?: string,
+) {
+  for (const socket of await io.in(room).fetchSockets()) {
+    try {
+      if (socket.data.user) {
+        const current = await sessionFromCookie(
+          socket.handshake.headers.cookie,
+        );
+        if (
+          !current ||
+          current.agency_id !== agencyId ||
+          current.role !== socket.data.user.role
+        ) {
+          socket.disconnect(true);
+          continue;
+        }
+        if (unitId) {
+          const membership = await sql(
+            "SELECT 1 FROM responder_unit_memberships WHERE user_id=$1 AND unit_id=$2 AND valid_from<=now() AND (valid_to IS NULL OR valid_to>now())",
+            [current.id, unitId],
+          );
+          if (current.role !== "responder" || !membership.length) {
+            socket.leave(room);
+            continue;
+          }
+        } else if (!["dispatcher", "supervisor"].includes(current.role)) {
+          socket.leave(room);
+          continue;
+        }
+      } else {
+        const receipt = await requireReceipt(
+          socket.handshake.auth.reference,
+          socket.handshake.auth.receiptToken,
+        );
+        if (room !== "receipt:" + receipt.id) {
+          socket.disconnect(true);
+          continue;
+        }
+      }
+      socket.emit("event", payload);
+    } catch {
+      socket.disconnect(true);
+    }
+  }
+}
 async function publish(msg: any) {
   try {
     const outbox = (
@@ -86,17 +144,30 @@ async function publish(msg: any) {
       ]),
     );
     if (settings.drop_notifications) return;
-    io.to("agency:" + outbox.agency_id).emit("event", outbox.payload);
+    await emitAuthorized(
+      "agency:" + outbox.agency_id,
+      outbox.payload,
+      outbox.agency_id,
+    );
     const units = await sql(
       "SELECT DISTINCT unit_id FROM assignments WHERE incident_id=$1",
       [outbox.aggregate_id],
     );
     for (const unit of units)
-      io.to("unit:" + unit.unit_id).emit("event", outbox.payload);
-    io.to("receipt:" + outbox.aggregate_id).emit("event", {
-      type: "system.sync_required",
-      simulation: true,
-    });
+      await emitAuthorized(
+        "unit:" + unit.unit_id,
+        outbox.payload,
+        outbox.agency_id,
+        unit.unit_id,
+      );
+    await emitAuthorized(
+      "receipt:" + outbox.aggregate_id,
+      {
+        type: "system.sync_required",
+        simulation: true,
+      },
+      outbox.agency_id,
+    );
   } catch (e) {
     console.error(
       "Realtime notification failed",

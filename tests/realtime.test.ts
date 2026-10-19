@@ -4,6 +4,7 @@ import { randomUUID } from "node:crypto";
 import { migrate, seed } from "../tools/database";
 import { pool, sql } from "../apps/api/src/db";
 import { tick } from "../apps/worker/src/index";
+import { digest } from "../packages/domain/src/index";
 let runtime: any;
 let cookie: string;
 const sockets: Socket[] = [];
@@ -39,6 +40,65 @@ it("rejects unauthenticated realtime subscriptions", async () => {
   sockets.push(socket);
   const error = await new Promise<any>((r) => socket.once("connect_error", r));
   expect(error.message).toBe("AUTHENTICATION_REQUIRED");
+});
+it("rejects an unapproved websocket origin before subscription", async () => {
+  const socket = connect("http://127.0.0.1:4200", {
+    extraHeaders: { Cookie: cookie, Origin: "https://unapproved.example" },
+    transports: ["websocket"],
+    reconnection: false,
+  });
+  sockets.push(socket);
+  expect(
+    await new Promise<string>((r) =>
+      socket.once("connect_error", (e) => r(e.message)),
+    ),
+  ).toBe("websocket error");
+});
+it("revalidates a revoked session before publishing an agency event", async () => {
+  const login = await fetch("http://127.0.0.1:4200/api/v1/auth/login", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      username: "dispatcher",
+      password: process.env.DEMO_PASSWORD || "Nexus-Demo-2026!",
+    }),
+  });
+  const ownCookie = login.headers.get("set-cookie")!.split(";")[0];
+  const socket = connect("http://127.0.0.1:4200", {
+    extraHeaders: { Cookie: ownCookie },
+    transports: ["websocket"],
+    reconnection: false,
+  });
+  sockets.push(socket);
+  await new Promise<void>((r, j) => {
+    socket.once("system.sync_required", () => r());
+    socket.once("connect_error", j);
+  });
+  const disconnected = new Promise<void>((r) =>
+    socket.once("disconnect", () => r()),
+  );
+  await sql("DELETE FROM sessions WHERE id_digest=$1", [
+    digest(ownCookie.split("=")[1]),
+  ]);
+  const key = randomUUID();
+  const created = await fetch("http://127.0.0.1:4200/api/v1/demo/incidents", {
+    method: "POST",
+    headers: { "Content-Type": "application/json", "Idempotency-Key": key },
+    body: JSON.stringify({
+      client_request_id: key,
+      simulation: true,
+      category: "TRAFFIC",
+      description: "Fictional revoked-session test",
+      landmark: "Fictional landmark",
+      longitude: 4.5557,
+      latitude: 7.7738,
+    }),
+  });
+  expect(created.status).toBe(200);
+  let count = 100;
+  while (count === 100) count = await tick();
+  await disconnected;
+  expect(socket.connected).toBe(false);
 });
 it("delivers committed outbox envelopes only to an authorised agency and citizen-safe hints", async () => {
   const key = randomUUID();

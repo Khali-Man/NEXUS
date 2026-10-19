@@ -1,4 +1,4 @@
-const CACHE = "nexus-public-shell-v2";
+const CACHE = "nexus-public-shell-v3";
 self.addEventListener("install", (e) => {
   e.waitUntil(
     (async () => {

@@ -31,4 +31,6 @@ Sessions are PostgreSQL-backed. Socket subscriptions derive exclusively from aut
 
 ## Data ownership and lifecycle
 
-One persistent dataset connects citizen receipt, incident, assignments, event lineage, reviews, feedback and exports. Admin reset cancels current synthetic records with explicit events rather than deleting history. Receipt access expires; the owner controls retained research records. Local checkpoints are unsigned and not externally anchored. No Redis or paid map/routing provider is required.
+One persistent dataset connects citizen receipt, incident, assignments, event lineage, reviews, feedback and exports. Admin reset cancels current synthetic records with explicit events rather than deleting history. Receipt access expires; the owner controls retained research records. Manual/scheduled checkpoints sign verified canonical event heads with Ed25519 using a separately stored private key. Covered-history exports are independently verified against a public-key registry obtained separately; legacy rows remain unsigned. No external anchor is configured. No Redis or paid map/routing provider is required.
+
+Optional public OSM geometry is served locally to MapLibre; a pinned self-hosted OSRM graph supplies ordinary-car estimates only on read-only candidate requests. Assignment transactions never wait on routing. Failed or partial route coverage uses explicitly labelled geographic fallback. See [maps](../infra/maps/README.md) and [signing](AUDIT_SIGNING.md).

@@ -1,6 +1,7 @@
 import { beforeAll, afterAll, describe, it, expect } from "vitest";
 import request from "supertest";
 import { randomUUID } from "node:crypto";
+import { createServer } from "node:http";
 import { app } from "../apps/api/src/app";
 import { pool, sql, normalizeEvent, passwordHash } from "../apps/api/src/db";
 import { verifyChain } from "../packages/domain/src/index";
@@ -270,6 +271,97 @@ describe("persistent secured workflow", () => {
       candidates.find((u: any) => u.callsign === "OSG • 04").excluded_reasons,
     ).toContain("CAPABILITY_MISMATCH");
   });
+  it("ranks complete road estimates, falls back on partial coverage and keeps routing outside assignment transactions", async () => {
+    const previous = process.env.OSRM_BASE_URL;
+    const previousFreshness = await sql(
+      "SELECT id,status_updated_at FROM units WHERE agency_id=$1",
+      [agency],
+    );
+    await sql(
+      "UPDATE units SET status_updated_at=now()-interval '30 minutes' WHERE agency_id=$1 AND id<>ALL($2)",
+      [agency, [unitA, unitB]],
+    );
+    let calls = 0;
+    const server = createServer((req, res) => {
+      calls++;
+      const partial = req.url!.startsWith("/partial/");
+      const from = req
+        .url!.split("/driving/")[1]
+        .split(";")[0]
+        .split(",")
+        .map(Number);
+      if (partial && from[0] === 4.557) {
+        res.end(JSON.stringify({ code: "NoRoute" }));
+        return;
+      }
+      res.end(
+        JSON.stringify({
+          code: "Ok",
+          waypoints: [{ distance: 1 }, { distance: 1 }],
+          routes: [
+            {
+              duration: from[0] === 4.557 ? 30 : 240,
+              distance: 1000,
+              geometry: {
+                type: "LineString",
+                coordinates: [from, [4.5557, 7.7738]],
+              },
+            },
+          ],
+        }),
+      );
+    });
+    await new Promise<void>((r) => server.listen(0, "127.0.0.1", r));
+    const base = `http://127.0.0.1:${(server.address() as any).port}`;
+    await sql(
+      "UPDATE units SET status_updated_at=now(),dispatch_status='AVAILABLE' WHERE id=ANY($1)",
+      [[unitA, unitB]],
+    );
+    await sql(
+      "UPDATE unit_current_locations SET geom=ST_SetSRID(ST_MakePoint(CASE WHEN unit_id=$1 THEN 4.556 ELSE 4.557 END,7.774),4326)::geography,recorded_at=now() WHERE unit_id=ANY($2)",
+      [unitA, [unitA, unitB]],
+    );
+    try {
+      const r = await report();
+      process.env.OSRM_BASE_URL = base;
+      const full = (
+        await agents.dispatcher.get(
+          "/api/v1/cad/incidents/" + r.row.id + "/candidates",
+        )
+      ).body.items;
+      expect(full.find((u: any) => u.id === unitA).ranking_basis).toBe(
+        "ROAD_MODEL_TIME",
+      );
+      expect(full.findIndex((u: any) => u.id === unitB)).toBeLessThan(
+        full.findIndex((u: any) => u.id === unitA),
+      );
+      process.env.OSRM_BASE_URL = base + "/partial";
+      const partial = (
+        await agents.dispatcher.get(
+          "/api/v1/cad/incidents/" + r.row.id + "/candidates",
+        )
+      ).body.items;
+      expect(partial.find((u: any) => u.id === unitB).eta_seconds).toBeNull();
+      expect(partial.find((u: any) => u.id === unitA).ranking_basis).toBe(
+        "GEODESIC_DISTANCE_FALLBACK",
+      );
+      const before = calls;
+      let i = (await act(r.row, "triage")).body.incident;
+      i = (await act(i, "ready")).body.incident;
+      const offered = await act(i, "assignments", { unit_id: unitA });
+      expect(offered.status, offered.text).toBe(200);
+      expect(calls).toBe(before);
+      expect((await act(offered.body.incident, "cancel")).status).toBe(200);
+    } finally {
+      await sql(
+        "UPDATE units u SET status_updated_at=p.status_updated_at FROM jsonb_to_recordset($1) AS p(id uuid,status_updated_at timestamptz) WHERE u.id=p.id",
+        [JSON.stringify(previousFreshness)],
+      );
+      if (previous === undefined) delete process.env.OSRM_BASE_URL;
+      else process.env.OSRM_BASE_URL = previous;
+      await new Promise<void>((r) => server.close(() => r()));
+    }
+  });
   it("blocks illegal transitions and stale versions without side effects", async () => {
     const r = await report();
     expect((await act(r.row, "close")).status).toBe(409);
@@ -313,6 +405,58 @@ describe("persistent secured workflow", () => {
     expect((await respond(r, "accept", key)).body.event.id).toBe(
       response.body.event.id,
     );
+    const http = createServer(app);
+    await new Promise<void>((r) => http.listen(0, "127.0.0.1", r));
+    try {
+      const base = `http://127.0.0.1:${(http.address() as any).port}/api/v1`;
+      const login = await fetch(base + "/auth/login", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          username: "responder",
+          password: process.env.DEMO_PASSWORD || "Nexus-Demo-2026!",
+        }),
+      });
+      const cookie = login.headers.get("set-cookie")!.split(";")[0];
+      const storm = await Promise.all(
+        Array.from({ length: 20 }, async () => {
+          const result = await fetch(
+            base + "/responder/assignments/" + r.assignment + "/accept",
+            {
+              method: "POST",
+              headers: {
+                "Content-Type": "application/json",
+                "Idempotency-Key": key,
+                Cookie: cookie,
+              },
+              body: JSON.stringify({
+                expected_version: r.row.version,
+                reason: "Synthetic responder test",
+                client_occurred_at: "2026-01-01T00:00:00.000Z",
+              }),
+            },
+          );
+          return { status: result.status, body: (await result.json()) as any };
+        }),
+      );
+      expect(
+        storm.every(
+          (result) =>
+            result.status === 200 &&
+            result.body.event.id === response.body.event.id,
+        ),
+      ).toBe(true);
+      expect(
+        (
+          await sql(
+            "SELECT count(*)::int AS count FROM incident_events WHERE incident_id=$1 AND event_type='assignment.accepted'",
+            [r.row.id],
+          )
+        )[0].count,
+      ).toBe(1);
+    } finally {
+      await new Promise<void>((r) => http.close(() => r()));
+    }
     r.row = response.body.incident;
     for (const action of ["en-route", "arrived", "outcome"]) {
       response = await respond(r, action);
@@ -510,7 +654,7 @@ describe("persistent secured workflow", () => {
       ).length,
     ).toBe(2);
   });
-  it("produces redacted CSV/PDF and unsigned checkpoints with truthful metrics", async () => {
+  it("produces redacted CSV/PDF and signed checkpoints with truthful metrics", async () => {
     const csv = await agents.supervisor.get(
       "/api/v1/assurance/reports/export?format=csv",
     );
@@ -526,8 +670,9 @@ describe("persistent secured workflow", () => {
       .post("/api/v1/assurance/audit/checkpoint")
       .set("Idempotency-Key", randomUUID())
       .send({ reason: "Verification" });
-    expect(checkpoint.body.signature).toBeNull();
-    expect(checkpoint.body.verification_status).toBe("LOCAL_ONLY");
+    expect(checkpoint.status, checkpoint.text).toBe(200);
+    expect(checkpoint.body.signature).toBeTruthy();
+    expect(checkpoint.body.verification_status).toBe("SIGNED_NOT_ANCHORED");
     const verification = await agents.supervisor.get(
       "/api/v1/assurance/audit/verify",
     );

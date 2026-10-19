@@ -894,7 +894,8 @@ function IncidentDetails({
     [priority, setPriority] = useState("MEDIUM"),
     [needsInformation, setNeedsInformation] = useState(false),
     [related, setRelated] = useState(""),
-    [correction, setCorrection] = useState("");
+    [correction, setCorrection] = useState(""),
+    [routeUnit, setRouteUnit] = useState("");
   const i = data.data;
   async function act(action: string, reason: string, extra: any = {}) {
     const result = await api("/cad/incidents/" + id + "/" + action, {
@@ -1014,6 +1015,19 @@ function IncidentDetails({
             )}
             <h3>{t("cad.candidates")}</h3>
             <p className="fine-print">{t("cad.etaInfo")}</p>
+            {candidateData.data?.items.find((u: any) => u.id === routeUnit)
+              ?.route_geometry && (
+              <GeoMap
+                incidents={[i]}
+                units={candidateData.data.items.filter(
+                  (u: any) => u.id === routeUnit,
+                )}
+                route={
+                  candidateData.data.items.find((u: any) => u.id === routeUnit)
+                    .route_geometry
+                }
+              />
+            )}
             {candidateData.data?.items.map((u: any) => (
               <div
                 className={"candidate-card " + (u.eligible ? "eligible" : "")}
@@ -1034,8 +1048,27 @@ function IncidentDetails({
                         .join(" · ")}
                 </p>
                 <small>
-                  {t("cad.eta")} · {date(u.recorded_at)}
+                  {u.eta_seconds != null
+                    ? t("cad.roadEstimate", {
+                        minutes: number(Math.ceil(u.eta_seconds / 60)),
+                        distance: number(u.route_distance_m / 1000),
+                      })
+                    : t("cad.eta")}{" "}
+                  · {date(u.estimate_at || u.recorded_at)}
                 </small>
+                {u.route_geometry && (
+                  <button
+                    className="text-link"
+                    onClick={() => setRouteUnit(u.id)}
+                  >
+                    {t("cad.showRoute")}
+                  </button>
+                )}
+                {u.eta_seconds != null && (
+                  <small>
+                    {t("cad.routeSource", { version: u.routing_data_version })}
+                  </small>
+                )}
                 {u.eligible && i.status === "WAITING_FOR_UNIT" && (
                   <ActionDialog
                     label="cad.offer"
@@ -1606,7 +1639,17 @@ function Audit() {
         <h2>{t("assurance.checkpointLabel")}</h2>
         {checkpoints.data?.items.map((c: any) => (
           <p key={c.id} className="mono hash">
-            {date(c.checkpoint_at)} · {c.root_hash}
+            {date(c.checkpoint_at)} ·{" "}
+            {t("assurance.signatureStatus." + c.signatureVerification)} ·{" "}
+            {c.signer_key_id} · {c.root_hash}
+            {c.signed_payload && (
+              <a
+                className="text-link"
+                href={"/api/v1/assurance/audit/checkpoints/" + c.id + "/bundle"}
+              >
+                {t("assurance.downloadCheckpoint")}
+              </a>
+            )}
           </p>
         ))}
       </section>
@@ -1767,6 +1810,33 @@ function Simulator({ slug }: { slug?: string }) {
       </div>
       <section className="panel info-panel">
         <h2>{t("simulation.runs")}</h2>
+        <button
+          className="secondary"
+          disabled={!data.data}
+          onClick={() => {
+            const content = {
+              application: "NEXUS — Response Intelligence",
+              simulation: true,
+              warning: t("legal.warning"),
+              generatedAt: new Date().toISOString(),
+              selectedSeed: seed,
+              scenarios: data.data.items,
+              runs: data.data.runs,
+            };
+            const url = URL.createObjectURL(
+              new Blob([JSON.stringify(content, null, 2)], {
+                type: "application/json",
+              }),
+            );
+            const a = document.createElement("a");
+            a.href = url;
+            a.download = "nexus-fictional-scenario-seeds.json";
+            a.click();
+            URL.revokeObjectURL(url);
+          }}
+        >
+          {t("simulation.exportSeeds")}
+        </button>
         {data.data?.runs.map((r: any) => (
           <div key={r.id} className="scenario-run">
             <div>

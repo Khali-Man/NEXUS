@@ -7,8 +7,10 @@
 - 256-bit private receipt capabilities, SHA-256 digests at rest, explicit expiry, browser fragment-to-session handling and no tracking analytics. Citizen API projections never expose unit positions, operator identities or internal notes.
 - Append-only canonical SHA-256 event chains with database mutation guards and checkpoints; no claim of external anchoring or immunity to database administrators.
 - Outbox worker uses `FOR UPDATE SKIP LOCKED` and bounded retry scheduling, PostgreSQL notifications wake API realtime delivery. REST replay remains authoritative after reconnect; sockets do not prove human acknowledgement.
-- Local licensed synthetic map geometry with MapLibre and accessible companion lists. External tile/routing services are optional; distance-only candidates explicitly report ETA unavailable. Never fabricate speeds or routes.
+- MapLibre with optional locally imported OpenStreetMap roads and self-hosted OSRM car estimates, licensed attribution and accessible companion lists. No invented street grid; absent data yields geographic context and explicit unavailable ETA. Routing stays outside dispatch transactions.
 - Store only fictional Osogbo landmarks. Optional browser GPS is a temporary client-side aid, never written as precise visitor coordinates. No outbound SMS/USSD or government integration.
 - Shared i18next/react-i18next en-NG catalogue, stable enum-to-message mapping, Intl dates defaulting to Africa/Lagos. Future complete human-reviewed languages require catalogue validation; no partial locale selector.
 - Browser responder queue contains minimal commands with stable keys/version/timestamps, no narratives or tokens; clears on logout. Service workers cache static public shells only, never API responses.
 - Development remains local. Docker is available. Browser binaries, packages and images use normal TLS/integrity verification. Set npm cache under /workspace because the home directory is restricted.
+
+Review amendment: shared manual/scheduled Ed25519 checkpoints replace unsigned creation. Private file keys are generated locally with protected permissions, public keys survive rotation, legacy rows stay labelled, and a separate standard-library verifier validates exported history. No external anchor or trusted timestamp is claimed.

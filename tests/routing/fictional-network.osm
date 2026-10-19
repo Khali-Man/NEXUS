@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<osm version="0.6" generator="NEXUS fictional engine-test fixture">
+  <node id="1" version="1" lat="7.773" lon="4.553"/>
+  <node id="2" version="1" lat="7.773" lon="4.556"/>
+  <node id="3" version="1" lat="7.776" lon="4.556"/>
+  <node id="4" version="1" lat="7.776" lon="4.553"/>
+  <way id="10" version="1"><nd ref="1"/><nd ref="2"/><nd ref="3"/><tag k="highway" v="residential"/><tag k="name" v="Fictional engine test A"/><tag k="oneway" v="yes"/></way>
+  <way id="11" version="1"><nd ref="3"/><nd ref="4"/><nd ref="1"/><tag k="highway" v="residential"/><tag k="name" v="Fictional engine test B"/><tag k="oneway" v="yes"/></way>
+</osm>

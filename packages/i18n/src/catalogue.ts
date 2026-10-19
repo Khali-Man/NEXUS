@@ -84,7 +84,7 @@ export const en = {
     about:
       "NEXUS is an independent research simulator for studying coordination, acknowledgement and accountability under unreliable connectivity. It has no affiliation with emergency agencies. All units, accounts and scenarios are fictional.",
     integrity:
-      "A valid SHA-256 chain detects changes within the local trust boundary. Checkpoints are unsigned and are not independently anchored. It does not prove that a reported event happened in the physical world.",
+      "SHA-256 chains detect changes; Ed25519 checkpoints bind recorded history to a signing key. Verify with an independently held public-key registry. Legacy unsigned records are labelled. No external timestamp or proof of physical events is provided.",
     storage:
       "This device stores only minimal pending field commands. Shared devices should be signed out after use. API responses and citizen details are never cached by the service worker.",
     urgent:
@@ -214,14 +214,19 @@ export const en = {
     distance: "Straight-line distance",
     eta: "ETA unavailable",
     etaInfo:
-      "Routing is unavailable. Distances are geographic estimates; no traffic or travel-time claim is made.",
+      "OSRM estimates ordinary car travel on an OSM snapshot. No live traffic, closures, emergency privileges or arrival guarantee. Complete route coverage ranks by model time; otherwise ranking uses straight-line distance.",
     offerExpiry: "Offer expires",
     emptyQueue: "No incidents match these filters.",
     providerMap: "LICENSED VECTOR MAP",
     providerMapNote: "Provider attribution shown on map · fictional units only",
-    map: "SYNTHETIC GEOGRAPHIC SCHEMATIC",
+    map: "GEOGRAPHIC CONTEXT · ROADS UNAVAILABLE",
+    osmMap: "OPENSTREETMAP · OSOGBO ROADS",
+    roadEstimate:
+      "Model travel estimate {{minutes}} min · road distance {{distance}} km",
+    showRoute: "Show estimated road route",
+    routeSource: "OSRM / OpenStreetMap · no live traffic · dataset {{version}}",
     mapNote:
-      "Fictional geometry · geographic landmark coordinates · no live tracking",
+      "Road data not installed · use location labels and distance lists · fictional units only",
     mapUnavailable:
       "Map unavailable. Use the incident and unit lists to continue.",
     resize: "Resize incident panel",
@@ -357,8 +362,20 @@ export const en = {
     verify: "Verify event chains",
     valid: "Chain verified",
     invalid: "Integrity mismatch",
-    checkpoint: "Create local checkpoint",
-    checkpointLabel: "Unsigned local checkpoints",
+    checkpoint: "Sign checkpoint",
+    checkpointLabel: "Checkpoint signatures · no external anchor",
+    downloadCheckpoint: "Download verification bundle",
+    signatureStatus: {
+      SIGNATURE_VALID: "Signature verified against local trust registry",
+      LEGACY_UNSIGNED: "Legacy unsigned checkpoint",
+      UNKNOWN_KEY: "Unknown signing key",
+      REVOKED_KEY: "Revoked signing key",
+      UNTRUSTED_KEY: "Untrusted signing key",
+      KEY_OUTSIDE_VALIDITY: "Key outside validity window",
+      INVALID_KEY: "Invalid public key",
+      PAYLOAD_MISMATCH: "Signed payload mismatch",
+      INVALID_SIGNATURE: "Invalid signature",
+    },
     reports: "Research reports",
     reportInfo:
       "Exports omit names, narratives and coordinates. Reports include sample size, omissions and generation time. Arrival is a reported status, not a verified physical outcome.",
@@ -372,6 +389,7 @@ export const en = {
     noEvents: "No recorded events yet.",
   },
   simulation: {
+    exportSeeds: "Export fictional scenario seeds and runs",
     title: "A controlled environment. A repeatable story.",
     subtitle:
       "Synthetic scenarios, explicit faults and a complete retained event trail.",

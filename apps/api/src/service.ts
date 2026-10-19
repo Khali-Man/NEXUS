@@ -1,4 +1,5 @@
 import type pg from "pg";
+import { roadEstimate } from "./routing";
 import { fixtures } from "../../../packages/simulation/src/index";
 import { randomUUID, randomBytes, createHmac } from "node:crypto";
 import {
@@ -152,6 +153,7 @@ export async function candidates(
   db: any = {
     query: (t: string, v: any[]) => sql(t, v).then((rows) => ({ rows })),
   },
+  withRoutes = false,
 ) {
   const incident = await getIncident(id, user, db);
   const rows = (
@@ -160,7 +162,7 @@ export async function candidates(
       [id, user.agency_id],
     )
   ).rows;
-  return rows.map((u: any) => {
+  const values = rows.map((u: any) => {
     const excluded = [];
     if (!u.is_simulated) excluded.push("NOT_SIMULATED");
     if (u.dispatch_status !== "AVAILABLE") excluded.push(u.dispatch_status);
@@ -178,6 +180,32 @@ export async function candidates(
       estimate_at: new Date().toISOString(),
     };
   });
+  if (!withRoutes) return values;
+  const eligible = values.filter((u: any) => u.eligible).slice(0, 12);
+  await Promise.all(
+    eligible.map(async (u: any) =>
+      Object.assign(
+        u,
+        await roadEstimate(
+          [u.longitude, u.latitude],
+          [incident.longitude, incident.latitude],
+        ),
+      ),
+    ),
+  );
+  const complete =
+    eligible.length > 0 &&
+    eligible.length === values.filter((u: any) => u.eligible).length &&
+    eligible.every((u: any) => u.eta_seconds !== null);
+  const ranking = complete ? "ROAD_MODEL_TIME" : "GEODESIC_DISTANCE_FALLBACK";
+  values.sort(
+    (a: any, b: any) =>
+      Number(b.eligible) - Number(a.eligible) ||
+      (complete && a.eligible && b.eligible
+        ? a.eta_seconds - b.eta_seconds
+        : (a.distance_m ?? Infinity) - (b.distance_m ?? Infinity)),
+  );
+  return values.map((u: any) => ({ ...u, ranking_basis: ranking }));
 }
 export async function perform(req: any, id: string, action: string) {
   const body = command.parse(req.body);
@@ -478,7 +506,7 @@ export async function verifyAudit(user: any, id?: string) {
   }
   return {
     assumptions:
-      "Local SHA-256 chain; unsigned checkpoints; no independent external anchor. A privileged database administrator can rewrite the trust boundary.",
+      "SHA-256 event chains and Ed25519 signed checkpoints; legacy unsigned records are labelled. Public keys require independent custody. No independent external timestamp/anchor or proof of physical events.",
     results,
   };
 }

@@ -1,4 +1,5 @@
 import { test, expect, type Page } from "@playwright/test";
+import { readFileSync } from "node:fs";
 const password = process.env.DEMO_PASSWORD || "Nexus-Demo-2026!";
 async function signIn(
   page: Page,
@@ -141,6 +142,17 @@ test("admin creates deterministic scenario, advances commands and toggles map fa
     path: "artifacts/screenshots/simulator-1440.png",
     fullPage: true,
   });
+  const exportDownload = page.waitForEvent("download");
+  await page
+    .getByRole("button", { name: "Export fictional scenario seeds and runs" })
+    .click();
+  const seedExport = await exportDownload;
+  const exported = JSON.parse(readFileSync((await seedExport.path())!, "utf8"));
+  expect(exported.scenarios).toHaveLength(9);
+  expect(exported.simulation).toBe(true);
+  expect(JSON.stringify(exported)).not.toMatch(
+    /receiptToken|receipt_token_digest/,
+  );
   const createdResponse = page.waitForResponse(
     (response) =>
       response
@@ -235,6 +247,7 @@ test("command layouts fit required desktop and tablet viewports", async ({
     [1280, 800],
     [1440, 900],
     [1920, 1080],
+    [3840, 2160],
     [768, 1024],
   ]) {
     await page.setViewportSize({ width, height });

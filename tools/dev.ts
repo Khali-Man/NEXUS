@@ -1,5 +1,7 @@
 import { spawn, spawnSync } from "node:child_process";
-const pnpm = process.platform === "win32" ? "pnpm.cmd" : "pnpm";
+const pnpmCli = process.env.npm_execpath;
+if (!pnpmCli)
+  throw new Error("Start this workflow through pnpm dev or pnpm start");
 const production = process.argv.includes("--production");
 const commands = [
   ["exec", "tsx", ...(production ? [] : ["watch"]), "apps/api/src/server.ts"],
@@ -9,7 +11,7 @@ const commands = [
   ["--filter", "@nexus/responder-pwa", production ? "start" : "dev"],
 ];
 const children = commands.map((args) =>
-  spawn(pnpm, args, {
+  spawn(process.execPath, [pnpmCli, ...args], {
     stdio: "inherit",
     detached: process.platform !== "win32",
     env: { ...process.env, NEXT_TELEMETRY_DISABLED: "1" },

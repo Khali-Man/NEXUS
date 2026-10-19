@@ -22,7 +22,13 @@
     "format": "prettier --write .",
     "test:k6": "tsx tools/k6.ts",
     "start": "tsx tools/dev.ts --production",
-    "test:db-restart": "tsx tests/fault/database-restart.ts"
+    "test:db-restart": "tsx tests/fault/database-restart.ts",
+    "audit:keygen": "tsx tools/audit-keygen.ts",
+    "audit:verify": "node tools/verify-checkpoint.mjs",
+    "maps:download": "tsx tools/maps.ts download",
+    "maps:prepare": "tsx tools/maps.ts prepare",
+    "maps:up": "docker compose -f infra/docker-compose.yml --profile routing up -d routing",
+    "test:routing": "tsx tests/routing/osrm-engine.ts"
   },
   "dependencies": {
     "@radix-ui/react-dialog": "^1.1.15",

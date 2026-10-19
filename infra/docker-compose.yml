@@ -1,4 +1,10 @@
 services:
+  routing:
+    profiles: ["routing"]
+    image: ghcr.io/project-osrm/osrm-backend@sha256:855614a38f464b0558a2ad6eaa7cb8c139f39887da9b38b485ce453c6e6e6124
+    command: ["osrm-routed", "--algorithm", "mld", "/data/osogbo.osrm"]
+    ports: ["127.0.0.1:5001:5000"]
+    volumes: ["../.nexus/maps:/data:ro"]
   db:
     image: postgis/postgis:17-3.5@sha256:01a6a70e41e6c4467c8f55f6063555ed72db2d6662cd0d571040d42eadaeb6f6
     environment:

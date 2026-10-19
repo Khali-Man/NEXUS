@@ -1,5 +1,5 @@
 import { pool, transaction, sql } from "../../api/src/db";
-import { digest, canonical } from "../../../packages/domain/src/index";
+import { createCheckpoint } from "../../api/src/audit";
 import { expireOffers } from "../../api/src/service";
 export async function tick() {
   await expireOffers();
@@ -7,7 +7,13 @@ export async function tick() {
     await sql("SELECT value FROM simulation_settings WHERE key='worker_paused'")
   )[0]?.value;
   if (paused) return 0;
-  await checkpointIfDue();
+  try {
+    await checkpointIfDue();
+  } catch {
+    console.error(
+      "Audit checkpoint unavailable; outbox delivery continues. Check signing configuration and event integrity.",
+    );
+  }
   return transaction(async (db) => {
     const rows = (
       await db.query(
@@ -34,7 +40,9 @@ export async function tick() {
     return rows.length;
   });
 }
-if (process.argv[1]?.endsWith("apps/worker/src/index.ts")) {
+if (
+  process.argv[1]?.replaceAll("\\", "/").endsWith("apps/worker/src/index.ts")
+) {
   let running = true;
   process.on("SIGTERM", () => {
     running = false;
@@ -61,19 +69,15 @@ async function checkpointIfDue() {
     );
     const agencies = (
       await db.query(
-        "SELECT a.id FROM agencies a WHERE NOT EXISTS(SELECT 1 FROM audit_checkpoints c WHERE c.scope=a.id::text AND c.checkpoint_at>now()-interval '15 minutes')",
+        "SELECT a.id FROM agencies a WHERE NOT EXISTS(SELECT 1 FROM audit_checkpoints c WHERE c.scope=a.id::text AND c.signed_payload IS NOT NULL AND c.checkpoint_at>now()-interval '15 minutes')",
       )
     ).rows;
     for (const agency of agencies) {
-      const heads = (
-        await db.query(
-          "SELECT DISTINCT ON(e.incident_id) e.incident_id,e.sequence,e.event_hash FROM incident_events e JOIN incidents i ON i.id=e.incident_id WHERE i.agency_id=$1 ORDER BY e.incident_id,e.sequence DESC",
-          [agency.id],
-        )
-      ).rows;
-      await db.query(
-        "INSERT INTO audit_checkpoints(scope,root_hash) VALUES($1,$2)",
-        [agency.id, digest(canonical(heads))],
+      await createCheckpoint(
+        db,
+        agency.id,
+        "Scheduled research checkpoint",
+        null,
       );
     }
   });

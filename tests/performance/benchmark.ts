@@ -24,10 +24,14 @@ const { migrate, seed } = await import("../../tools/database");
 const { sql, pool } = await import("../../apps/api/src/db");
 await migrate();
 await seed();
-const child = spawn("node_modules/.bin/tsx", ["apps/api/src/server.ts"], {
-  env: { ...process.env, PORT: "4100" },
-  stdio: ["ignore", "pipe", "pipe"],
-});
+const child = spawn(
+  process.execPath,
+  ["node_modules/tsx/dist/cli.mjs", "apps/api/src/server.ts"],
+  {
+    env: { ...process.env, PORT: "4100" },
+    stdio: ["ignore", "pipe", "pipe"],
+  },
+);
 let serverOutput = "";
 child.stdout.on("data", (b) => (serverOutput += b.toString()));
 child.stderr.on("data", (b) => (serverOutput += b.toString()));
