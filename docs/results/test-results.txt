@@ -2,34 +2,51 @@ $ tsx tools/test-database.ts && vitest run
 
  RUN  v3.2.7 /workspace/NEXUS
 
+stdout | tests/audit.test.ts
+Audit signing key installed: ed25519-7dbce2d629f9bd9baf6c4190 (private material was not logged)
+
+stdout | tests/audit.test.ts
+Synthetic accounts, units and nine scenarios seeded.
+
+stdout | tests/audit.test.ts > retains verification across rotation, binds checkpoint linkage and rejects revoked/unknown keys
+Audit signing key installed: ed25519-83b19fc1be7a5567e676eaca (private material was not logged)
+
+ ✓ tests/audit.test.ts (4 tests) 4446ms
+   ✓ independently verifies an API-exported signed history with Node's standard library  461ms
+   ✓ rejects envelope changes, modified/rehashed history, truncation and signature substitution  1588ms
+   ✓ retains verification across rotation, binds checkpoint linkage and rejects revoked/unknown keys  1566ms
 stdout | tests/scenarios.test.ts
 Synthetic accounts, units and nine scenarios seeded.
 
- ✓ tests/scenarios.test.ts (45 tests) 5933ms
+ ✓ tests/scenarios.test.ts (45 tests) 7189ms
+   ✓ executes traffic-osogbo-main, seed 1, and its explicit goals  332ms
+   ✓ executes assignment-declined, seed 1, and its explicit goals  624ms
+   ✓ executes duplicate-alerts, seed 1, and its explicit goals  343ms
+   ✓ executes assignment-declined, seed 2, and its explicit goals  329ms
+stdout | tests/integration.test.ts
+Synthetic accounts, units and nine scenarios seeded.
+
+ ✓ tests/integration.test.ts (21 tests) 3875ms
+   ✓ persistent secured workflow > completes citizen → triage → offer → acknowledgement → outcome → closure and feedback  347ms
+   ✓ persistent secured workflow > expires offers and returns to waiting with an explicit appended event  381ms
+   ✓ persistent secured workflow > produces redacted CSV/PDF and signed checkpoints with truthful metrics  1099ms
 stdout | tests/realtime.test.ts
 Synthetic accounts, units and nine scenarios seeded.
 
 stdout | tests/realtime.test.ts
 NEXUS API listening on 4200
 
- ✓ tests/realtime.test.ts (3 tests) 2993ms
-   ✓ delivers committed outbox envelopes only to an authorised agency and citizen-safe hints  1138ms
-   ✓ replaces a terminated notification connection and resumes authoritative realtime delivery  776ms
-stdout | tests/integration.test.ts
-Synthetic accounts, units and nine scenarios seeded.
-
- ✓ tests/integration.test.ts (20 tests) 5548ms
-   ✓ persistent secured workflow > expires offers and returns to waiting with an explicit appended event  382ms
-   ✓ persistent secured workflow > applies membership and agency scope to details, commands, replay and export  423ms
-   ✓ persistent secured workflow > produces redacted CSV/PDF and unsigned checkpoints with truthful metrics  2098ms
- ✓ tests/localisation.test.ts (2 tests) 234ms
+ ✓ tests/realtime.test.ts (5 tests) 1599ms
+   ✓ replaces a terminated notification connection and resumes authoritative realtime delivery  599ms
+ ✓ tests/localisation.test.ts (2 tests) 123ms
+ ✓ tests/routing.test.ts (2 tests) 69ms
 stdout | tests/domain.test.ts
 🌐 i18next is made possible by our own product, Locize — consider powering your project with managed localization (AI, CDN, integrations): https://locize.com 💙
 
- ✓ tests/domain.test.ts (5 tests) 19ms
+ ✓ tests/domain.test.ts (5 tests) 11ms
 
- Test Files  5 passed (5)
-      Tests  75 passed (75)
-   Start at  16:02:48
-   Duration  18.97s (transform 525ms, setup 0ms, collect 2.19s, tests 14.73s, environment 2ms, prepare 602ms)
+ Test Files  7 passed (7)
+      Tests  84 passed (84)
+   Start at  21:09:03
+   Duration  21.05s (transform 369ms, setup 0ms, collect 2.04s, tests 17.31s, environment 1ms, prepare 549ms)
 

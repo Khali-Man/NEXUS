@@ -136,9 +136,7 @@ test("route UI displays declared provider fixtures and removes the route when es
   available = false;
   await page.reload();
   await page.getByRole("button", { name: "Overview", exact: true }).click();
-  await expect(
-    page.getByText("ETA unavailable", { exact: true }),
-  ).toBeVisible();
+  await expect(page.getByText(/ETA unavailable/)).toBeVisible();
   await expect(
     page.getByRole("button", { name: "Show estimated road route" }),
   ).toHaveCount(0);

@@ -1,0 +1,129 @@
+{
+  "recordedAt": "2026-10-19T21:13:37.670631+00:00",
+  "host": "Linux / Node 24.19.0 / pnpm 11.25.0",
+  "checks": [
+    {
+      "command": "pnpm install --frozen-lockfile",
+      "exitCode": 0
+    },
+    {
+      "command": "pnpm setup",
+      "exitCode": 0
+    },
+    {
+      "command": "pnpm lint",
+      "exitCode": 0
+    },
+    {
+      "command": "pnpm typecheck",
+      "exitCode": 0
+    },
+    {
+      "command": "pnpm exec prettier --check .",
+      "exitCode": 0
+    },
+    {
+      "command": "pnpm test",
+      "exitCode": 0
+    },
+    {
+      "command": "pnpm test:routing",
+      "exitCode": 0
+    },
+    {
+      "command": "pnpm build",
+      "exitCode": 0
+    },
+    {
+      "command": "pnpm test:e2e",
+      "exitCode": 0
+    },
+    {
+      "command": "pnpm test:performance",
+      "exitCode": 0
+    },
+    {
+      "command": "pnpm test:k6",
+      "exitCode": 0
+    },
+    {
+      "command": "pnpm test:db-restart",
+      "exitCode": 0
+    }
+  ],
+  "vitest": {
+    "passed": 84,
+    "failed": 0,
+    "skipped": 0
+  },
+  "browser": {
+    "startTime": "2026-10-19T21:09:56.084Z",
+    "duration": 86875.96800000001,
+    "expected": 16,
+    "skipped": 0,
+    "unexpected": 0,
+    "flaky": 0
+  },
+  "routingEngineFixture": "Fictional; actual pinned OSRM engine, one-way and outage checks passed",
+  "load": {
+    "freshSubmissions": 8000,
+    "apiErrors": 0,
+    "duplicateReferences": 0,
+    "faultCasesPassed": 15
+  },
+  "k6": {
+    "requests": 500,
+    "checksPassed": 1000,
+    "checksFailed": 0
+  },
+  "databaseRestart": {
+    "at": "2026-10-19T21:09:39.217Z",
+    "databaseRestarted": true,
+    "apiRecovered": true,
+    "sessionRecovered": true,
+    "commandCommitted": true,
+    "workerNotificationRecovered": true,
+    "elapsedMs": 2194.8311009999998
+  },
+  "screenshots": [
+    {
+      "path": "docs/screenshots/administrator.png",
+      "sha256": "5f5ee9ae4b88a59ad3b7fc86b9641197f3a140e8f44fac0796758da42d29dcb4"
+    },
+    {
+      "path": "docs/screenshots/citizen.png",
+      "sha256": "575514344c17a0a6d65d412b38a85c6788c62e659414b6d3a60db4d474045228"
+    },
+    {
+      "path": "docs/screenshots/dispatcher.png",
+      "sha256": "98c94522a2c26748ac01ca6db6df4033b30ebc113d6039ce4b05670757cb8339"
+    },
+    {
+      "path": "docs/screenshots/responder.png",
+      "sha256": "4e9fe3bb4fbde7350fcca28211a511fb006fbdc820977187f06a7d3c4ebc0aac"
+    },
+    {
+      "path": "docs/screenshots/supervisor.png",
+      "sha256": "cc5e38f92103da31b19e206a6542889a031d464414da9680324114f40c5915e5"
+    }
+  ],
+  "blocked": [
+    {
+      "command": "pnpm maps:download",
+      "exitCode": 1,
+      "reason": "Egress proxy HTTP 403 for overpass-api.de"
+    },
+    {
+      "command": "gh pr create --repo Khali-Man/NEXUS --base main --head review/nexus-integrated-product --body-file docs/PR_DESCRIPTION.md",
+      "exitCode": 1,
+      "reason": "Egress proxy rejected POST https://api.github.com/graphql: Forbidden; no PR was created"
+    }
+  ],
+  "unrun": [
+    "Windows 11 / Docker Desktop",
+    "Real Osogbo OSM road import / real-city route quality",
+    "External immutable audit anchor / KMS",
+    "Non-Chromium and manual assistive-technology review",
+    "Remote GitHub Actions"
+  ]
+}

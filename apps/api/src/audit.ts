@@ -26,9 +26,17 @@ export function trustedKeys() {
   );
 }
 export function signatureStatus(row: any, registry: any) {
-  if (!row.signed_payload || !row.signature) return "LEGACY_UNSIGNED";
+  if (
+    !row.signed_payload &&
+    !row.signature &&
+    !row.algorithm &&
+    row.signer_key_id === "DEMO_UNSIGNED"
+  )
+    return "LEGACY_UNSIGNED";
+  if (!row.signed_payload || !row.signature) return "INVALID_SIGNATURE";
   try {
     const p = row.signed_payload;
+    if (registry.version !== 1) return "INVALID_KEY";
     const key = registry.keys.find((k: any) => k.id === p.keyId);
     if (!key) return "UNKNOWN_KEY";
     if (key.status === "revoked") return "REVOKED_KEY";

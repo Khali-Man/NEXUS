@@ -1,5 +1,5 @@
 {
-  "startedAt": "2026-10-19T15:37:08.648Z",
+  "startedAt": "2026-10-19T21:01:35.094Z",
   "hardware": {
     "platform": "linux",
     "node": "v24.19.0",
@@ -17,19 +17,19 @@
       "seed": 1,
       "count": 100,
       "apiErrors": 0,
-      "medianMs": 530.1847720000001,
-      "p95Ms": 647.6835279999996,
-      "elapsedMs": 736.4547630000002,
+      "medianMs": 784.231871,
+      "p95Ms": 1041.189175,
+      "elapsedMs": 1208.7086129999998,
       "duplicateReferenceCount": 0,
-      "parentMemoryBytes": 137109504,
+      "parentMemoryBytes": 138006528,
       "parentCpuMicroseconds": {
-        "user": 341616,
-        "system": 66089
+        "user": 279890,
+        "system": 38922
       },
       "baseline": {
-        "medianMs": 274.18462899999986,
-        "p95Ms": 309.889013,
-        "elapsedMs": 353.34938599999987,
+        "medianMs": 444.03744499999993,
+        "p95Ms": 514.0654450000002,
+        "elapsedMs": 550.1899750000002,
         "apiErrors": 0,
         "persistence": false
       }
@@ -39,19 +39,19 @@
       "seed": 2,
       "count": 100,
       "apiErrors": 0,
-      "medianMs": 321.40801899999997,
-      "p95Ms": 437.8037559999998,
-      "elapsedMs": 471.83067100000017,
+      "medianMs": 385.19030399999974,
+      "p95Ms": 578.6438989999997,
+      "elapsedMs": 716.2264270000005,
       "duplicateReferenceCount": 0,
-      "parentMemoryBytes": 158736384,
+      "parentMemoryBytes": 159895552,
       "parentCpuMicroseconds": {
-        "user": 244269,
-        "system": 29082
+        "user": 223692,
+        "system": 68152
       },
       "baseline": {
-        "medianMs": 63.21388999999999,
-        "p95Ms": 66.75446999999986,
-        "elapsedMs": 81.56341099999918,
+        "medianMs": 66.31768099999954,
+        "p95Ms": 69.45161199999984,
+        "elapsedMs": 87.41969700000027,
         "apiErrors": 0,
         "persistence": false
       }
@@ -61,19 +61,19 @@
       "seed": 3,
       "count": 100,
       "apiErrors": 0,
-      "medianMs": 181.96430400000008,
-      "p95Ms": 298.45431800000006,
-      "elapsedMs": 356.36716500000057,
+      "medianMs": 437.02803499999936,
+      "p95Ms": 523.5456549999999,
+      "elapsedMs": 620.2359210000004,
       "duplicateReferenceCount": 0,
-      "parentMemoryBytes": 169091072,
+      "parentMemoryBytes": 169594880,
       "parentCpuMicroseconds": {
-        "user": 153118,
-        "system": 5502
+        "user": 197541,
+        "system": 37734
       },
       "baseline": {
-        "medianMs": 20.43865099999948,
-        "p95Ms": 24.371331000000282,
-        "elapsedMs": 29.75369800000044,
+        "medianMs": 75.94156400000065,
+        "p95Ms": 83.30701800000043,
+        "elapsedMs": 108.57294199999978,
         "apiErrors": 0,
         "persistence": false
       }
@@ -83,19 +83,19 @@
       "seed": 4,
       "count": 100,
       "apiErrors": 0,
-      "medianMs": 259.61526199999935,
-      "p95Ms": 346.56268,
-      "elapsedMs": 409.8463760000004,
+      "medianMs": 362.26732600000014,
+      "p95Ms": 474.6685239999997,
+      "elapsedMs": 514.1371769999996,
       "duplicateReferenceCount": 0,
-      "parentMemoryBytes": 184295424,
+      "parentMemoryBytes": 184537088,
       "parentCpuMicroseconds": {
-        "user": 120620,
-        "system": 21485
+        "user": 99842,
+        "system": 22131
       },
       "baseline": {
-        "medianMs": 26.832933000000594,
-        "p95Ms": 33.61987700000009,
-        "elapsedMs": 39.259411,
+        "medianMs": 49.39817699999912,
+        "p95Ms": 70.03482500000064,
+        "elapsedMs": 79.01966300000004,
         "apiErrors": 0,
         "persistence": false
       }
@@ -105,19 +105,19 @@
       "seed": 5,
       "count": 100,
       "apiErrors": 0,
-      "medianMs": 422.8106690000004,
-      "p95Ms": 673.4269510000004,
-      "elapsedMs": 751.4994210000004,
+      "medianMs": 260.10475700000006,
+      "p95Ms": 336.3124910000006,
+      "elapsedMs": 419.15531100000044,
       "duplicateReferenceCount": 0,
-      "parentMemoryBytes": 202383360,
+      "parentMemoryBytes": 203804672,
       "parentCpuMicroseconds": {
-        "user": 141635,
-        "system": 28193
+        "user": 91015,
+        "system": 95715
       },
       "baseline": {
-        "medianMs": 23.69088399999964,
-        "p95Ms": 24.537947000000713,
-        "elapsedMs": 29.65359399999943,
+        "medianMs": 40.39572800000042,
+        "p95Ms": 42.17887999999948,
+        "elapsedMs": 49.273205999999846,
         "apiErrors": 0,
         "persistence": false
       }
@@ -127,19 +127,19 @@
       "seed": 1,
       "count": 500,
       "apiErrors": 0,
-      "medianMs": 880.3282639999998,
-      "p95Ms": 1234.0424430000003,
-      "elapsedMs": 1304.0717130000003,
+      "medianMs": 1418.3540330000005,
+      "p95Ms": 1961.8341949999995,
+      "elapsedMs": 2102.2915030000004,
       "duplicateReferenceCount": 0,
-      "parentMemoryBytes": 212475904,
+      "parentMemoryBytes": 213635072,
       "parentCpuMicroseconds": {
-        "user": 472821,
-        "system": 66833
+        "user": 497534,
+        "system": 208055
       },
       "baseline": {
-        "medianMs": 173.05284699999993,
-        "p95Ms": 243.32542999999987,
-        "elapsedMs": 282.4188239999994,
+        "medianMs": 309.23479600000064,
+        "p95Ms": 527.1332729999995,
+        "elapsedMs": 596.0827709999994,
         "apiErrors": 0,
         "persistence": false
       }
@@ -149,19 +149,19 @@
       "seed": 2,
       "count": 500,
       "apiErrors": 0,
-      "medianMs": 536.1473219999998,
-      "p95Ms": 873.757756,
-      "elapsedMs": 950.9721130000007,
+      "medianMs": 765.5546319999994,
+      "p95Ms": 1593.312002999999,
+      "elapsedMs": 1837.5303390000008,
       "duplicateReferenceCount": 0,
-      "parentMemoryBytes": 276963328,
+      "parentMemoryBytes": 277598208,
       "parentCpuMicroseconds": {
-        "user": 326300,
-        "system": 73351
+        "user": 378238,
+        "system": 303702
       },
       "baseline": {
-        "medianMs": 125.7032849999996,
-        "p95Ms": 134.79827900000055,
-        "elapsedMs": 170.24994700000025,
+        "medianMs": 160.6145860000015,
+        "p95Ms": 195.7812359999989,
+        "elapsedMs": 255.19678999999996,
         "apiErrors": 0,
         "persistence": false
       }
@@ -171,19 +171,19 @@
       "seed": 3,
       "count": 500,
       "apiErrors": 0,
-      "medianMs": 566.9675050000005,
-      "p95Ms": 856.6221719999994,
-      "elapsedMs": 952.4937209999989,
+      "medianMs": 1116.7058700000016,
+      "p95Ms": 1547.124702000001,
+      "elapsedMs": 1922.6542229999995,
       "duplicateReferenceCount": 0,
-      "parentMemoryBytes": 303702016,
+      "parentMemoryBytes": 305647616,
       "parentCpuMicroseconds": {
-        "user": 341126,
-        "system": 36591
+        "user": 451529,
+        "system": 302634
       },
       "baseline": {
-        "medianMs": 119.60211200000049,
-        "p95Ms": 135.9247179999984,
-        "elapsedMs": 166.11250499999915,
+        "medianMs": 197.39948600000025,
+        "p95Ms": 206.58572999999888,
+        "elapsedMs": 270.88198700000066,
         "apiErrors": 0,
         "persistence": false
       }
@@ -193,19 +193,19 @@
       "seed": 4,
       "count": 500,
       "apiErrors": 0,
-      "medianMs": 527.979018,
-      "p95Ms": 862.5482630000006,
-      "elapsedMs": 967.010698,
+      "medianMs": 868.6624899999988,
+      "p95Ms": 1440.5192789999983,
+      "elapsedMs": 1531.4594379999999,
       "duplicateReferenceCount": 0,
-      "parentMemoryBytes": 346169344,
+      "parentMemoryBytes": 344182784,
       "parentCpuMicroseconds": {
-        "user": 380935,
-        "system": 53225
+        "user": 309657,
+        "system": 79032
       },
       "baseline": {
-        "medianMs": 76.65278899999976,
-        "p95Ms": 111.24550199999976,
-        "elapsedMs": 133.90575999999965,
+        "medianMs": 112.78776500000095,
+        "p95Ms": 142.88316099999975,
+        "elapsedMs": 190.16982499999904,
         "apiErrors": 0,
         "persistence": false
       }
@@ -215,19 +215,19 @@
       "seed": 5,
       "count": 500,
       "apiErrors": 0,
-      "medianMs": 503.91427999999905,
-      "p95Ms": 915.2351639999997,
-      "elapsedMs": 990.6726610000005,
+      "medianMs": 662.789976,
+      "p95Ms": 1191.9408300000014,
+      "elapsedMs": 1327.092114000001,
       "duplicateReferenceCount": 0,
-      "parentMemoryBytes": 377233408,
+      "parentMemoryBytes": 377606144,
       "parentCpuMicroseconds": {
-        "user": 398050,
-        "system": 70740
+        "user": 508279,
+        "system": 41815
       },
       "baseline": {
-        "medianMs": 63.57136899999932,
-        "p95Ms": 69.65153800000007,
-        "elapsedMs": 89.55244799999855,
+        "medianMs": 138.10744300000079,
+        "p95Ms": 156.22777700000006,
+        "elapsedMs": 186.94987799999944,
         "apiErrors": 0,
         "persistence": false
       }
@@ -237,19 +237,19 @@
       "seed": 1,
       "count": 1000,
       "apiErrors": 0,
-      "medianMs": 1232.7822289999986,
-      "p95Ms": 2434.1836639999983,
-      "elapsedMs": 2574.5576920000003,
+      "medianMs": 1579.3874810000016,
+      "p95Ms": 2597.012988000002,
+      "elapsedMs": 2814.9979160000003,
       "duplicateReferenceCount": 0,
-      "parentMemoryBytes": 378019840,
+      "parentMemoryBytes": 377606144,
       "parentCpuMicroseconds": {
-        "user": 690175,
-        "system": 86943
+        "user": 717667,
+        "system": 91939
       },
       "baseline": {
-        "medianMs": 265.9965200000006,
-        "p95Ms": 866.3596710000002,
-        "elapsedMs": 976.7241410000006,
+        "medianMs": 232.42243299999973,
+        "p95Ms": 370.7107219999998,
+        "elapsedMs": 441.34195499999987,
         "apiErrors": 0,
         "persistence": false
       }
@@ -259,19 +259,19 @@
       "seed": 2,
       "count": 1000,
       "apiErrors": 0,
-      "medianMs": 1922.368192,
-      "p95Ms": 3364.970504000001,
-      "elapsedMs": 3494.383546000001,
+      "medianMs": 1866.770418,
+      "p95Ms": 4438.8782009999995,
+      "elapsedMs": 5244.323998,
       "duplicateReferenceCount": 0,
-      "parentMemoryBytes": 384573440,
+      "parentMemoryBytes": 382042112,
       "parentCpuMicroseconds": {
-        "user": 908351,
-        "system": 142761
+        "user": 1679515,
+        "system": 340012
       },
       "baseline": {
-        "medianMs": 499.9654300000002,
-        "p95Ms": 1699.268469999999,
-        "elapsedMs": 1743.5993710000002,
+        "medianMs": 809.7796420000013,
+        "p95Ms": 1591.9891119999993,
+        "elapsedMs": 1811.2723450000012,
         "apiErrors": 0,
         "persistence": false
       }
@@ -281,19 +281,19 @@
       "seed": 3,
       "count": 1000,
       "apiErrors": 0,
-      "medianMs": 3113.682596999999,
-      "p95Ms": 4641.188371,
-      "elapsedMs": 4909.453871999998,
+      "medianMs": 2012.5317780000005,
+      "p95Ms": 3065.8637710000003,
+      "elapsedMs": 3313.789785000001,
       "duplicateReferenceCount": 0,
-      "parentMemoryBytes": 385097728,
+      "parentMemoryBytes": 383483904,
       "parentCpuMicroseconds": {
-        "user": 1197211,
-        "system": 126872
+        "user": 1224241,
+        "system": 176332
       },
       "baseline": {
-        "medianMs": 321.0791559999998,
-        "p95Ms": 1292.8429690000012,
-        "elapsedMs": 1356.4374729999981,
+        "medianMs": 468.1232569999993,
+        "p95Ms": 1544.810523,
+        "elapsedMs": 1592.6463970000004,
         "apiErrors": 0,
         "persistence": false
       }
@@ -303,19 +303,19 @@
       "seed": 4,
       "count": 1000,
       "apiErrors": 0,
-      "medianMs": 3015.643179999999,
-      "p95Ms": 4713.299178000001,
-      "elapsedMs": 4972.860352,
+      "medianMs": 2280.383145,
+      "p95Ms": 3829.8012219999946,
+      "elapsedMs": 4099.205331000001,
       "duplicateReferenceCount": 0,
-      "parentMemoryBytes": 406986752,
+      "parentMemoryBytes": 383483904,
       "parentCpuMicroseconds": {
-        "user": 1212874,
-        "system": 234079
+        "user": 1149966,
+        "system": 233163
       },
       "baseline": {
-        "medianMs": 484.9876949999998,
-        "p95Ms": 1422.7165099999984,
-        "elapsedMs": 1529.6964350000017,
+        "medianMs": 632.4134950000007,
+        "p95Ms": 2468.7330930000026,
+        "elapsedMs": 2625.779972000004,
         "apiErrors": 0,
         "persistence": false
       }
@@ -325,19 +325,19 @@
       "seed": 5,
       "count": 1000,
       "apiErrors": 0,
-      "medianMs": 2414.311759000004,
-      "p95Ms": 3510.2662280000004,
-      "elapsedMs": 3720.62947,
+      "medianMs": 4821.868605000003,
+      "p95Ms": 7723.444875000001,
+      "elapsedMs": 8267.691296999998,
       "duplicateReferenceCount": 0,
-      "parentMemoryBytes": 406986752,
+      "parentMemoryBytes": 386498560,
       "parentCpuMicroseconds": {
-        "user": 829985,
-        "system": 156099
+        "user": 1088430,
+        "system": 163505
       },
       "baseline": {
-        "medianMs": 461.3593230000042,
-        "p95Ms": 1561.8647249999995,
-        "elapsedMs": 1646.5461020000002,
+        "medianMs": 454.3558140000023,
+        "p95Ms": 1403.4484809999994,
+        "elapsedMs": 1537.5506409999944,
         "apiErrors": 0,
         "persistence": false
       }
@@ -347,167 +347,167 @@
     {
       "seed": 1,
       "requestedOfflineSeconds": 15,
-      "measuredOfflineSeconds": 15.729973044000001,
+      "measuredOfflineSeconds": 21.177636984,
       "durableRecoveredEvents": 1,
       "expectedMissedEvents": 1,
       "replayCompleteness": 1,
       "baselineRecoveredEvents": 0,
       "staleCommandHttpStatus": 409,
-      "recoveryMs": 372.74221399999806
+      "recoveryMs": 5522.783820000001
     },
     {
       "seed": 2,
       "requestedOfflineSeconds": 15,
-      "measuredOfflineSeconds": 15.685567966,
+      "measuredOfflineSeconds": 20.645766669,
       "durableRecoveredEvents": 1,
       "expectedMissedEvents": 1,
       "replayCompleteness": 1,
       "baselineRecoveredEvents": 0,
       "staleCommandHttpStatus": 409,
-      "recoveryMs": 347.53180599999905
+      "recoveryMs": 5454.8242869999995
     },
     {
       "seed": 3,
       "requestedOfflineSeconds": 15,
-      "measuredOfflineSeconds": 15.704092999,
+      "measuredOfflineSeconds": 21.077536971,
       "durableRecoveredEvents": 1,
       "expectedMissedEvents": 1,
       "replayCompleteness": 1,
       "baselineRecoveredEvents": 0,
       "staleCommandHttpStatus": 409,
-      "recoveryMs": 371.75377300000036
+      "recoveryMs": 5510.961727000002
     },
     {
       "seed": 4,
       "requestedOfflineSeconds": 15,
-      "measuredOfflineSeconds": 15.7672287,
+      "measuredOfflineSeconds": 21.066348422000004,
       "durableRecoveredEvents": 1,
       "expectedMissedEvents": 1,
       "replayCompleteness": 1,
       "baselineRecoveredEvents": 0,
       "staleCommandHttpStatus": 409,
-      "recoveryMs": 371.90183400000024
+      "recoveryMs": 5483.854584999997
     },
     {
       "seed": 5,
       "requestedOfflineSeconds": 15,
-      "measuredOfflineSeconds": 15.757482330999999,
+      "measuredOfflineSeconds": 20.694264249,
       "durableRecoveredEvents": 1,
       "expectedMissedEvents": 1,
       "replayCompleteness": 1,
       "baselineRecoveredEvents": 0,
       "staleCommandHttpStatus": 409,
-      "recoveryMs": 367.68404799999917
+      "recoveryMs": 5514.869795000002
     },
     {
       "seed": 1,
       "requestedOfflineSeconds": 60,
-      "measuredOfflineSeconds": 60.440657165999994,
+      "measuredOfflineSeconds": 60.32312515099999,
       "durableRecoveredEvents": 1,
       "expectedMissedEvents": 1,
       "replayCompleteness": 1,
       "baselineRecoveredEvents": 0,
       "staleCommandHttpStatus": 409,
-      "recoveryMs": 84.06746099999873
+      "recoveryMs": 182.1571519999925
     },
     {
       "seed": 2,
       "requestedOfflineSeconds": 60,
-      "measuredOfflineSeconds": 60.439064762,
+      "measuredOfflineSeconds": 60.70568972900001,
       "durableRecoveredEvents": 1,
       "expectedMissedEvents": 1,
       "replayCompleteness": 1,
       "baselineRecoveredEvents": 0,
       "staleCommandHttpStatus": 409,
-      "recoveryMs": 75.02788600000349
+      "recoveryMs": 175.30173400000785
     },
     {
       "seed": 3,
       "requestedOfflineSeconds": 60,
-      "measuredOfflineSeconds": 60.447072861,
+      "measuredOfflineSeconds": 60.322706206999996,
       "durableRecoveredEvents": 1,
       "expectedMissedEvents": 1,
       "replayCompleteness": 1,
       "baselineRecoveredEvents": 0,
       "staleCommandHttpStatus": 409,
-      "recoveryMs": 70.03240600000572
+      "recoveryMs": 174.91929400000663
     },
     {
       "seed": 4,
       "requestedOfflineSeconds": 60,
-      "measuredOfflineSeconds": 60.491718221999996,
+      "measuredOfflineSeconds": 60.758745827,
       "durableRecoveredEvents": 1,
       "expectedMissedEvents": 1,
       "replayCompleteness": 1,
       "baselineRecoveredEvents": 0,
       "staleCommandHttpStatus": 409,
-      "recoveryMs": 89.74272899999778
+      "recoveryMs": 174.56818800000474
     },
     {
       "seed": 5,
       "requestedOfflineSeconds": 60,
-      "measuredOfflineSeconds": 60.425983145,
+      "measuredOfflineSeconds": 60.29838613100001,
       "durableRecoveredEvents": 1,
       "expectedMissedEvents": 1,
       "replayCompleteness": 1,
       "baselineRecoveredEvents": 0,
       "staleCommandHttpStatus": 409,
-      "recoveryMs": 77.82824199999595
+      "recoveryMs": 181.394607000002
     },
     {
       "seed": 1,
       "requestedOfflineSeconds": 300,
-      "measuredOfflineSeconds": 300.643377779,
+      "measuredOfflineSeconds": 303.62774630499996,
       "durableRecoveredEvents": 1,
       "expectedMissedEvents": 1,
       "replayCompleteness": 1,
       "baselineRecoveredEvents": 0,
       "staleCommandHttpStatus": 409,
-      "recoveryMs": 145.46499000000767
+      "recoveryMs": 3021.4991990000126
     },
     {
       "seed": 2,
       "requestedOfflineSeconds": 300,
-      "measuredOfflineSeconds": 300.582060154,
+      "measuredOfflineSeconds": 303.20396831599993,
       "durableRecoveredEvents": 1,
       "expectedMissedEvents": 1,
       "replayCompleteness": 1,
       "baselineRecoveredEvents": 0,
       "staleCommandHttpStatus": 409,
-      "recoveryMs": 95.91556500003207
+      "recoveryMs": 2595.9646990000037
     },
     {
       "seed": 3,
       "requestedOfflineSeconds": 300,
-      "measuredOfflineSeconds": 300.619590214,
+      "measuredOfflineSeconds": 303.647467888,
       "durableRecoveredEvents": 1,
       "expectedMissedEvents": 1,
       "replayCompleteness": 1,
       "baselineRecoveredEvents": 0,
       "staleCommandHttpStatus": 409,
-      "recoveryMs": 99.84617999999318
+      "recoveryMs": 2626.463709999982
     },
     {
       "seed": 4,
       "requestedOfflineSeconds": 300,
-      "measuredOfflineSeconds": 300.60734179599996,
+      "measuredOfflineSeconds": 303.63072808600003,
       "durableRecoveredEvents": 1,
       "expectedMissedEvents": 1,
       "replayCompleteness": 1,
       "baselineRecoveredEvents": 0,
       "staleCommandHttpStatus": 409,
-      "recoveryMs": 102.47310600004857
+      "recoveryMs": 2706.8553850000026
     },
     {
       "seed": 5,
       "requestedOfflineSeconds": 300,
-      "measuredOfflineSeconds": 300.634863816,
+      "measuredOfflineSeconds": 303.705703423,
       "durableRecoveredEvents": 1,
       "expectedMissedEvents": 1,
       "replayCompleteness": 1,
       "baselineRecoveredEvents": 0,
       "staleCommandHttpStatus": 409,
-      "recoveryMs": 270.9235590000171
+      "recoveryMs": 2706.5647519999766
     }
   ],
   "limitations": [
@@ -515,6 +515,6 @@
     "Emit-only baseline deliberately has no persistence or replay.",
     "No live routing model or independently verified arrival."
   ],
-  "completedAt": "2026-10-19T15:42:10.457Z",
+  "completedAt": "2026-10-19T21:06:40.658Z",
   "serverOutput": "NEXUS API listening on 4100\n"
 }

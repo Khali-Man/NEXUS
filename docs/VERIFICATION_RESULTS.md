@@ -1,38 +1,57 @@
-# Verification results
+# Verification results — preservation review
 
-Validation date: 19 October 2026. This is a local independent research simulator, not an operational emergency system.
+Validation host: Linux, 19 October 2026; Node 24.19.0, pnpm 11.25.0, Docker Engine 28.4.0, PostgreSQL 17.5/PostGIS 3.5.2. This is a fictional private research simulation. No operational emergency-service readiness is asserted.
 
-## Executed checks
+## Exact commands and observed results
 
-- Repeatable `pnpm setup`: PostgreSQL/PostGIS health, versioned migrations and synthetic seed succeeded without deleting history or replacing existing accounts.
-- `pnpm lint` and both root/Next.js TypeScript checks passed.
-- Vitest: **75 tests passed** across domain/localisation, PostgreSQL integration/security, realtime and all nine deterministic scenarios at five seeds each. No expected failures/skips replace required assertions.
-- Production Next.js and both Vite builds succeeded. MapLibre is split into a deferred client chunk; its bundle-size advisory remains an optimisation opportunity, not a hidden failed build.
-- **14 production Chromium browser tests passed**, including the five-surface axe/visual regressions. Browser flows verify citizen receipt/tracking, CAD filtering/detail/units, assurance replay/download, simulator controls, responder profile/outbox, keyboard/reduced-motion/viewports and the complete offline lifecycle. The final browser report and screenshots are retained under `artifacts/`.
-- Five-surface axe checks and screenshot baselines cover citizen, command, assurance, simulator and responder. Low-contrast citizen secondary copy found by axe was corrected before baseline acceptance.
+Commands ran from the repository root. Local production services were started with `pnpm start` after the frontend build; browser tests targeted those services. Database-restart testing ran separately from other database-dependent checks.
 
-A real PostgreSQL container restart was also exercised: the API, sessions, new commands, worker delivery and the dedicated notification listener recovered in about 2.04 seconds. See [database-restart.json](results/database-restart.json). The listener reconnects with bounded backoff and prompts clients to reconcile; notification dispatch still does not prove browser receipt.
+| Command                          | Actual result                                                                                                                                                                                                                                                      |
+| -------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `pnpm install --frozen-lockfile` | Passed; all six physical workspace projects already up to date; no lockfile/dependency changes.                                                                                                                                                                    |
+| `pnpm setup`                     | Passed; existing database/history/accounts preserved, migrations 001–004 applied, local receipt and Ed25519 configuration present. Repeat setup passed.                                                                                                            |
+| `pnpm lint`                      | Passed.                                                                                                                                                                                                                                                            |
+| `pnpm typecheck`                 | Passed for root and Next.js.                                                                                                                                                                                                                                       |
+| `pnpm exec prettier --check .`   | Passed; original specifications and raw output archives are deliberately excluded from formatting.                                                                                                                                                                 |
+| `pnpm test`                      | **84 passed**, seven files, zero failed/skipped in the final run at 21:09:03 UTC.                                                                                                                                                                                  |
+| `pnpm test:routing`              | Passed against the actual pinned OSRM Docker engine; fictional fixture one-way path 331 m forward / 995 m return, model 48 seconds forward; service outage produced unavailable ETA.                                                                               |
+| `pnpm build`                     | Next.js and both Vite production builds passed. Deferred MapLibre chunk size remains an optimisation advisory.                                                                                                                                                     |
+| `pnpm test:e2e`                  | **16 passed**, zero failed/flaky/skipped in the final production Chromium run (1.4 minutes), including five-role axe/visual checks, 320px through 4K layouts, offline lifecycle, route presentation/fallback and signed-history download/independent verification. |
+| `pnpm test:performance`          | Passed; 15 load runs across five seeds at 100/500/1,000 concurrency; 8,000 fresh submissions; zero API errors and duplicate references. All 15 outage cases recovered the expected missed event and rejected stale commands with 409.                              |
+| `pnpm test:k6`                   | Passed; 100 VUs, 500 requests, 1,000/1,000 checks, zero HTTP failures. Median 1.61 s, p95 3.48 s on this shared host.                                                                                                                                              |
+| `pnpm test:db-restart`           | Passed at 21:09:39 UTC; API/session/new command/worker notification recovered after an actual Postgres container restart, measured 2,194.83 ms.                                                                                                                    |
+| `pnpm maps:download`             | **Blocked/failed**, exit 1: the egress proxy rejected the Overpass request with HTTP 403. Actual Osogbo road import is not verified.                                                                                                                               |
 
-The final complete browser run and unit/integration run are retained in [browser-results.json](results/browser-results.json) and [test-results.txt](results/test-results.txt); successful build output is [build-results.txt](results/build-results.txt). The browser suite also exercised a French browser locale with English fallback, denied and mocked on-device GPS, long strings at 320px and throttled network conditions (120ms latency, 200 KiB/s download, 100 KiB/s upload).
+Vitest covers domain/localisation (7), real PostgreSQL integration/security including retry storm and routing API ranking/fallback (21), independent signed-history verification/rotation/tampering/key refusal (4), HTTP route provider failure/coalescing (2), deterministic scenarios (45), and authenticated realtime/revocation/reconnect (5). Tests use isolated `nexus_test`; load experiments use `nexus_bench`. No development history was reset or overwritten to make verification pass.
 
-The offline browser lifecycle actually disconnects the field context, queues acceptance without changing the central OFFERED state, navigates to the cached PWA outbox while offline, reconnects with the original key, reports progress and closes the incident. Citizen tracking then shows the nine confirmed states and removes the capability fragment from the address bar.
+During test development, a new audit assertion used the wrong error field; it was corrected to the documented `{code,...}` shape. The route integration fixture initially inherited too many fresh units from earlier tests; it now isolates/restores fixture freshness explicitly. Browser route selectors were corrected to use the Overview tab and allow the timestamp following unavailable ETA. These failed attempts were investigated; they are not counted as passes or masked through skips/baseline replacement.
 
-## Measured comparative experiments
+## Fresh comparative measurements
 
-Raw output: [benchmark-results.json](results/benchmark-results.json). The final measured run began at 15:37:08 UTC and completed at 15:42:10 UTC. Node 24.19.0; Linux; four available CPUs; 35,743,760,384 bytes reported host memory; local PostgreSQL/PostGIS and a 24-connection API pool. The host also performed verification work, so these are shared-host observations with visible run-to-run variation.
+Raw [benchmark-results.json](results/benchmark-results.json), run **21:01:35.094–21:06:40.658 UTC**. Four host CPUs, 35,743,760,384 reported memory bytes, 24-connection pool, isolated benchmark API rate limit 50,000/minute. Builds, tests and browser verification shared host resources during portions of the run. Parent-process resource counters describe the load generator, not isolated API CPU/memory. Existing fictional benchmark history was retained; these measurements are not a pristine empty-database capacity estimate.
 
-| Simultaneous requests | Seeds | Durable median range | Durable p95 range | Emit-only baseline p95 range | API errors / duplicate references |
-| --------------------- | ----- | -------------------- | ----------------- | ---------------------------- | --------------------------------- |
-| 100                   | 5     | 182–530 ms           | 298–673 ms        | 24–310 ms                    | 0 / 0                             |
-| 500                   | 5     | 504–880 ms           | 857–1,234 ms      | 70–243 ms                    | 0 / 0                             |
-| 1,000                 | 5     | 1,233–3,114 ms       | 2,434–4,713 ms    | 866–1,699 ms                 | 0 / 0                             |
+| Concurrent requests | Seeds | Durable median range | Durable p95 range | Emit-only baseline p95 range |
+| ------------------- | ----- | -------------------- | ----------------- | ---------------------------- |
+| 100                 | 5     | 260–784 ms           | 336–1,041 ms      | 42–514 ms                    |
+| 500                 | 5     | 663–1,418 ms         | 1,192–1,962 ms    | 143–527 ms                   |
+| 1,000               | 5     | 1,579–4,822 ms       | 2,597–7,723 ms    | 371–2,469 ms                 |
 
-The durable engine completed **8,000 fresh synthetic submissions**, plus original-key retries. The faster baseline intentionally omits durable state and replay; its latency is not equivalent functionality. All 15 real wall-clock outage cases (15s/60s/300s × five seeds) recovered the expected missed cancellation; the emit-only baseline recovered zero matching missed events. Every stale queued acceptance returned 409. Observed reconnect-to-replay completion ranged **70–373 ms**. These are five-seed descriptive ranges, not a general statistical guarantee.
+The deliberately simpler emit-only baseline has no durable state/replay; its latency is not equivalent functionality. Across the five seeds for each requested 15/60/300-second disconnection, resilient replay recovered the expected cancellation in all 15 cases; the baseline recovered zero matching missed events. Every stale queued acknowledgement returned 409. Requested and measured intervals differ under host contention:
 
-Independent k6 output: [k6.txt](results/k6.txt). **100 VUs, 500 HTTP requests, 1,000 checks passed, zero HTTP failures**. Median request time 243.77 ms; p95 460.63 ms. This is a separate fresh-request run against the isolated benchmark database and a raised local test rate limit, not the public default rate-limit policy.
+| Requested offline interval | Measured offline range | Reconnect-to-replay range |
+| -------------------------- | ---------------------- | ------------------------- |
+| 15 s                       | 20.65–21.18 s          | 5,455–5,523 ms            |
+| 60 s                       | 60.30–60.76 s          | 175–182 ms                |
+| 300 s                      | 303.20–303.71 s        | 2,596–3,021 ms            |
 
-## Boundaries and unrun checks
+Independent [k6.txt](results/k6.txt) is a separate fresh-request run. These descriptive measurements vary with shared CPU scheduling, storage, database size and concurrent verification. They do not establish production capacity, statistical generality or real emergency-response improvement.
 
-Windows/Docker Desktop execution, non-Chromium browsers, manual screen-reader review, independent penetration testing, external map/routing services, external audit anchoring and production emergency-service use were not validated here. The default tested map mode is an explicit synthetic schematic with companion lists and unavailable ETA. No real emergency contact, official endorsement, real tracking or real responder deployment is present.
+## Evidence and boundaries
 
-The GitHub Actions workflow is provided but has not been executed on GitHub from this session. Current-host validation and generated build artefacts do not imply publication or deployment elsewhere.
+Raw [test output](results/test-results.txt), [build output](results/build-results.txt), [browser report](results/browser-results.json), [routing engine evidence](results/routing-engine.json), and [database restart](results/database-restart.json) accompany the source. Five current unmasked application captures were visually reviewed and are linked in [SCREENSHOTS.md](SCREENSHOTS.md). Automated shell baselines mask changing IDs, clocks, counts and live map/data regions; unmasked application screenshots are separate evidence. Baselines were not replaced to hide failures.
+
+Signed checkpoints and exported histories are independently checked by a separate Node process using only standard-library cryptography and a separately supplied public registry. They are **not externally anchored** and do not prove physical events. Public key fingerprints are safe metadata; private keys, `.env`, database volumes, dependencies, generated app builds and Playwright traces are excluded from Git.
+
+**Not executed/verified:** Windows 11/Docker Desktop; actual Osogbo OSM import/real-city routes; non-Chromium and native mobile PWA installation; manual screen-reader review; independent penetration testing; KMS/HSM custody; external timestamp/anchor; GitHub Actions remote execution. Complete Windows instructions, routing operations and signing trust limits are documented. See [inventory](IMPLEMENTATION_INVENTORY.md) for remaining partial implementation requirements, including API response-schema coverage, review evidence workflow and automatic history/TTL deletion. No public deployment, real emergency integration or live responder tracking was performed.
+
+Git preservation and the blocked actual PR attempt are recorded in [GIT_PRESERVATION.md](GIT_PRESERVATION.md); [PR_DESCRIPTION.md](PR_DESCRIPTION.md) is ready for review. Git push succeeded; GitHub API POST was rejected by the environment proxy.

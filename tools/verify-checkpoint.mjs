@@ -22,6 +22,7 @@ try {
   const assert = (condition, message) => {
     if (!condition) throw new Error(message);
   };
+  assert(registry.version === 1, "Unsupported trust registry version");
   assert(p && c.signature, "Unsigned checkpoint");
   const key = registry.keys.find((k) => k.id === p.keyId);
   assert(

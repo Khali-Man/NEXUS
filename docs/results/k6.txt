@@ -13,8 +13,32 @@
               * synthetic: 500 iterations shared among 100 VUs (maxDuration: 1m0s, gracefulStop: 30s)
 
 
-running (0m01.0s), 100/100 VUs, 286 complete and 0 interrupted iterations
-synthetic   [  57% ] 100 VUs  0m01.0s/1m0s  286/500 shared iters
+running (0m00.8s), 100/100 VUs, 0 complete and 0 interrupted iterations
+synthetic   [   0% ] 100 VUs  0m00.8s/1m0s  000/500 shared iters
+
+running (0m01.9s), 100/100 VUs, 9 complete and 0 interrupted iterations
+synthetic   [   2% ] 100 VUs  0m01.9s/1m0s  009/500 shared iters
+
+running (0m03.1s), 100/100 VUs, 56 complete and 0 interrupted iterations
+synthetic   [  11% ] 100 VUs  0m03.1s/1m0s  056/500 shared iters
+
+running (0m04.0s), 100/100 VUs, 119 complete and 0 interrupted iterations
+synthetic   [  24% ] 100 VUs  0m04.0s/1m0s  119/500 shared iters
+
+running (0m04.8s), 100/100 VUs, 138 complete and 0 interrupted iterations
+synthetic   [  28% ] 100 VUs  0m04.8s/1m0s  138/500 shared iters
+
+running (0m05.8s), 100/100 VUs, 255 complete and 0 interrupted iterations
+synthetic   [  51% ] 100 VUs  0m05.8s/1m0s  255/500 shared iters
+
+running (0m06.8s), 100/100 VUs, 342 complete and 0 interrupted iterations
+synthetic   [  68% ] 100 VUs  0m06.8s/1m0s  342/500 shared iters
+
+running (0m07.8s), 100/100 VUs, 380 complete and 0 interrupted iterations
+synthetic   [  76% ] 100 VUs  0m07.8s/1m0s  380/500 shared iters
+
+running (0m08.9s), 045/100 VUs, 455 complete and 0 interrupted iterations
+synthetic   [  91% ] 100 VUs  0m08.9s/1m0s  455/500 shared iters
 
 
   █ THRESHOLDS 
@@ -28,7 +52,7 @@ synthetic   [  57% ] 100 VUs  0m01.0s/1m0s  286/500 shared iters
 
   █ TOTAL RESULTS 
 
-    checks_total.......: 1000    599.241333/s
+    checks_total.......: 1000    106.392361/s
     checks_succeeded...: 100.00% 1000 out of 1000
     checks_failed......: 0.00%   0 out of 1000
 
@@ -36,23 +60,23 @@ synthetic   [  57% ] 100 VUs  0m01.0s/1m0s  286/500 shared iters
     ✓ capability issued
 
     HTTP
-    http_req_duration..............: avg=283.12ms min=187.82ms med=243.77ms max=565.19ms p(90)=432.13ms p(95)=460.63ms
-      { expected_response:true }...: avg=283.12ms min=187.82ms med=243.77ms max=565.19ms p(90)=432.13ms p(95)=460.63ms
+    http_req_duration..............: avg=1.73s min=657.69ms med=1.61s max=4.41s p(90)=3.05s p(95)=3.48s
+      { expected_response:true }...: avg=1.73s min=657.69ms med=1.61s max=4.41s p(90)=3.05s p(95)=3.48s
     http_req_failed................: 0.00%  0 out of 500
-    http_reqs......................: 500    299.620667/s
+    http_reqs......................: 500    53.19618/s
 
     EXECUTION
-    iteration_duration.............: avg=284.26ms min=189.5ms  med=244.09ms max=574.56ms p(90)=436.99ms p(95)=461.6ms 
-    iterations.....................: 500    299.620667/s
-    vus............................: 100    min=100      max=100
+    iteration_duration.............: avg=1.75s min=657.86ms med=1.61s max=4.75s p(90)=3.06s p(95)=3.49s
+    iterations.....................: 500    53.19618/s
+    vus............................: 45     min=45       max=100
     vus_max........................: 100    min=100      max=100
 
     NETWORK
-    data_received..................: 630 kB 378 kB/s
-    data_sent......................: 218 kB 131 kB/s
+    data_received..................: 630 kB 67 kB/s
+    data_sent......................: 218 kB 23 kB/s
 
 
 
 
-running (0m01.7s), 000/100 VUs, 500 complete and 0 interrupted iterations
-synthetic ✓ [ 100% ] 100 VUs  0m01.7s/1m0s  500/500 shared iters
+running (0m09.4s), 000/100 VUs, 500 complete and 0 interrupted iterations
+synthetic ✓ [ 100% ] 100 VUs  0m09.4s/1m0s  500/500 shared iters

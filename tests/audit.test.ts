@@ -95,6 +95,10 @@ it("independently verifies an API-exported signed history with Node's standard l
   });
 });
 it("rejects envelope changes, modified/rehashed history, truncation and signature substitution", () => {
+  const registry = JSON.parse(readFileSync(trustFile, "utf8"));
+  expect(
+    signatureStatus({ ...bundle.checkpoint, signature: null }, registry),
+  ).toBe("INVALID_SIGNATURE");
   for (const mutate of [
     (b: any) => (b.checkpoint.signed_payload.scope = randomUUID()),
     (b: any) => (b.checkpoint.signed_payload.reason = "Changed reason"),
