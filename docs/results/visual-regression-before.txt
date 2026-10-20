@@ -1,0 +1,84 @@
+$ playwright test
+
+Running 16 tests using 1 worker
+
+(node:433952) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  ✓   1 tests/e2e/integrity-routing.spec.ts:17:1 › supervisor signs and independently verifies a downloaded covered-history bundle (4.3s)
+  ✓   2 tests/e2e/integrity-routing.spec.ts:69:1 › route UI displays declared provider fixtures and removes the route when estimates fail (5.3s)
+  ✓   3 tests/e2e/product.spec.ts:32:1 › citizen mobile journey creates a private server-confirmed receipt (2.0s)
+  ✓   4 tests/e2e/product.spec.ts:67:1 › CAD login, live queue, filters, map fallback and unit board work (7.6s)
+  ✓   5 tests/e2e/product.spec.ts:105:1 › supervisor audit, replay and redacted exports use server records (3.5s)
+  ✓   6 tests/e2e/product.spec.ts:135:1 › admin creates deterministic scenario, advances commands and toggles map failure (3.3s)
+  ✓   7 tests/e2e/product.spec.ts:185:1 › responder displays server missions and durable outbox/profile (2.0s)
+  ✓   8 tests/e2e/product.spec.ts:211:1 › citizen keyboard, reduced motion, browser locale fallback and all mobile viewports (2.5s)
+  ✓   9 tests/e2e/product.spec.ts:242:1 › command layouts fit required desktop and tablet viewports (10.9s)
+  ✓  10 tests/e2e/product.spec.ts:265:1 › offline responder acceptance stays local, reconnects, and completes one integrated lifecycle (19.8s)
+  ✓  11 tests/e2e/product.spec.ts:426:1 › English fallback, denied GPS, local-only position preview, and long-string layouts remain usable (2.8s)
+  ✓  12 tests/e2e/quality.spec.ts:47:3 › citizen accessibility and visual contract (2.1s)
+  ✓  13 tests/e2e/quality.spec.ts:47:3 › command accessibility and visual contract (5.0s)
+  ✘  14 tests/e2e/quality.spec.ts:47:3 › assurance accessibility and visual contract (4.2s)
+(node:435599) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  ✓  15 tests/e2e/quality.spec.ts:47:3 › simulator accessibility and visual contract (3.6s)
+  ✓  16 tests/e2e/quality.spec.ts:47:3 › responder accessibility and visual contract (3.0s)
+
+
+  1) tests/e2e/quality.spec.ts:47:3 › assurance accessibility and visual contract ──────────────────
+
+    Error: expect(page).toHaveScreenshot(expected) failed
+
+      129927 pixels (ratio 0.11 of all image pixels) are different.
+
+      Snapshot: assurance-shell.png
+
+    Call log:
+      - Expect "toHaveScreenshot(assurance-shell.png)" with timeout 15000ms
+        - verifying given screenshot expectation
+      - taking page screenshot
+        - disabled all CSS animations
+      - waiting for fonts to load...
+      - fonts loaded
+      - 129927 pixels (ratio 0.11 of all image pixels) are different.
+      - waiting 100ms before taking screenshot
+      - taking page screenshot
+        - disabled all CSS animations
+      - waiting for fonts to load...
+      - fonts loaded
+      - captured a stable screenshot
+      - 129927 pixels (ratio 0.11 of all image pixels) are different.
+
+
+      81 |         ".command-header time { visibility:hidden } .scenario-run:nth-of-type(n+2), .mission-card:nth-of-type(n+2) {display:none}",
+      82 |     });
+    > 83 |     await expect(page).toHaveScreenshot(surface.name + "-shell.png", {
+         |                        ^
+      84 |       animations: "disabled",
+      85 |       maxDiffPixelRatio: 0.003,
+      86 |       mask: [
+        at /workspace/NEXUS/tests/e2e/quality.spec.ts:83:24
+
+    attachment #1: assurance-shell (image/png) ─────────────────────────────────────────────────────
+    Expected: tests/e2e/quality.spec.ts-snapshots/assurance-shell-linux.png
+    Received: test-results/quality-assurance-accessibility-and-visual-contract/assurance-shell-actual.png
+    Diff:     test-results/quality-assurance-accessibility-and-visual-contract/assurance-shell-diff.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #2: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results/quality-assurance-accessibility-and-visual-contract/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: test-results/quality-assurance-accessibility-and-visual-contract/error-context.md
+
+    attachment #4: trace (application/zip) ─────────────────────────────────────────────────────────
+    test-results/quality-assurance-accessibility-and-visual-contract/trace.zip
+    Usage:
+
+        pnpm exec playwright show-trace test-results/quality-assurance-accessibility-and-visual-contract/trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+  1 failed
+    tests/e2e/quality.spec.ts:47:3 › assurance accessibility and visual contract ───────────────────
+  15 passed (1.4m)
+[ELIFECYCLE] Command failed with exit code 1.

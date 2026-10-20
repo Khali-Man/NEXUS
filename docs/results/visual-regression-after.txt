@@ -1,0 +1,24 @@
+$ playwright test
+
+Running 16 tests using 1 worker
+
+(node:437584) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  ✓   1 tests/e2e/integrity-routing.spec.ts:17:1 › supervisor signs and independently verifies a downloaded covered-history bundle (8.9s)
+  ✓   2 tests/e2e/integrity-routing.spec.ts:69:1 › route UI displays declared provider fixtures and removes the route when estimates fail (7.4s)
+  ✓   3 tests/e2e/product.spec.ts:32:1 › citizen mobile journey creates a private server-confirmed receipt (2.7s)
+  ✓   4 tests/e2e/product.spec.ts:67:1 › CAD login, live queue, filters, map fallback and unit board work (9.2s)
+  ✓   5 tests/e2e/product.spec.ts:105:1 › supervisor audit, replay and redacted exports use server records (4.2s)
+  ✓   6 tests/e2e/product.spec.ts:149:1 › admin creates deterministic scenario, advances commands and toggles map failure (4.9s)
+  ✓   7 tests/e2e/product.spec.ts:199:1 › responder displays server missions and durable outbox/profile (2.9s)
+  ✓   8 tests/e2e/product.spec.ts:225:1 › citizen keyboard, reduced motion, browser locale fallback and all mobile viewports (3.3s)
+  ✓   9 tests/e2e/product.spec.ts:256:1 › command layouts fit required desktop and tablet viewports (12.8s)
+  ✓  10 tests/e2e/product.spec.ts:279:1 › offline responder acceptance stays local, reconnects, and completes one integrated lifecycle (20.2s)
+  ✓  11 tests/e2e/product.spec.ts:440:1 › English fallback, denied GPS, local-only position preview, and long-string layouts remain usable (2.4s)
+  ✓  12 tests/e2e/quality.spec.ts:48:3 › citizen accessibility and visual contract (2.0s)
+  ✓  13 tests/e2e/quality.spec.ts:48:3 › command accessibility and visual contract (4.8s)
+  ✓  14 tests/e2e/quality.spec.ts:48:3 › assurance accessibility and visual contract (3.7s)
+  ✓  15 tests/e2e/quality.spec.ts:48:3 › simulator accessibility and visual contract (11.9s)
+  ✓  16 tests/e2e/quality.spec.ts:48:3 › responder accessibility and visual contract (2.7s)
+
+  16 passed (1.9m)

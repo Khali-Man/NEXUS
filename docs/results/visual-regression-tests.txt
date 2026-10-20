@@ -1,0 +1,70 @@
+$ tsx tools/test-database.ts && vitest run
+
+ RUN  v3.2.7 /workspace/NEXUS
+
+stdout | tests/scenarios.test.ts
+Synthetic accounts, units and nine scenarios seeded.
+
+ ✓ tests/scenarios.test.ts (45 tests) 17477ms
+   ✓ executes traffic-osogbo-main, seed 1, and its explicit goals  2852ms
+   ✓ executes medical-low-network, seed 1, and its explicit goals  706ms
+   ✓ executes fire-no-eligible, seed 1, and its explicit goals  336ms
+   ✓ executes assignment-declined, seed 1, and its explicit goals  777ms
+   ✓ executes late-arrival-conflict, seed 1, and its explicit goals  541ms
+   ✓ executes map-unavailable, seed 1, and its explicit goals  324ms
+   ✓ executes medical-low-network, seed 2, and its explicit goals  336ms
+   ✓ executes assignment-declined, seed 2, and its explicit goals  407ms
+   ✓ executes map-unavailable, seed 2, and its explicit goals  903ms
+   ✓ executes traffic-osogbo-main, seed 3, and its explicit goals  423ms
+   ✓ executes medical-low-network, seed 3, and its explicit goals  356ms
+   ✓ executes two-incidents-one-unit, seed 3, and its explicit goals  303ms
+   ✓ executes assignment-declined, seed 3, and its explicit goals  569ms
+   ✓ executes map-unavailable, seed 4, and its explicit goals  514ms
+   ✓ executes traffic-osogbo-main, seed 5, and its explicit goals  301ms
+   ✓ executes medical-low-network, seed 5, and its explicit goals  316ms
+   ✓ executes assignment-declined, seed 5, and its explicit goals  432ms
+stdout | tests/audit.test.ts
+Audit signing key installed: ed25519-bf6a07845484938aa6ca52a2 (private material was not logged)
+
+stdout | tests/audit.test.ts
+Synthetic accounts, units and nine scenarios seeded.
+
+stdout | tests/audit.test.ts > retains verification across rotation, binds checkpoint linkage and rejects revoked/unknown keys
+Audit signing key installed: ed25519-cbe4c881eada378bc52ff5e8 (private material was not logged)
+
+ ✓ tests/audit.test.ts (4 tests) 9607ms
+   ✓ independently verifies an API-exported signed history with Node's standard library  832ms
+   ✓ rejects envelope changes, modified/rehashed history, truncation and signature substitution  2741ms
+   ✓ retains verification across rotation, binds checkpoint linkage and rejects revoked/unknown keys  4330ms
+stdout | tests/integration.test.ts
+Synthetic accounts, units and nine scenarios seeded.
+
+ ✓ tests/integration.test.ts (21 tests) 8548ms
+   ✓ persistent secured workflow > commits one incident and one outbox/event under retry storms, with no raw capability stored  364ms
+   ✓ persistent secured workflow > completes citizen → triage → offer → acknowledgement → outcome → closure and feedback  683ms
+   ✓ persistent secured workflow > retains declined and withdrawn assignment lineage and rejects old offline commands  307ms
+   ✓ persistent secured workflow > expires offers and returns to waiting with an explicit appended event  730ms
+   ✓ persistent secured workflow > resumes worker outage and replays all missed versions  664ms
+   ✓ persistent secured workflow > produces redacted CSV/PDF and signed checkpoints with truthful metrics  3397ms
+stdout | tests/realtime.test.ts
+Synthetic accounts, units and nine scenarios seeded.
+
+stdout | tests/realtime.test.ts
+NEXUS API listening on 4200
+
+ ✓ tests/realtime.test.ts (5 tests) 2977ms
+   ✓ revalidates a revoked session before publishing an agency event  537ms
+   ✓ replaces a terminated notification connection and resumes authoritative realtime delivery  660ms
+ ✓ tests/localisation.test.ts (2 tests) 727ms
+   ✓ shared translation contract > resolves every statically referenced interface key  652ms
+ ✓ tests/routing.test.ts (2 tests) 80ms
+stdout | tests/domain.test.ts
+🌐 i18next is made possible by our own product, Locize — consider powering your project with managed localization (AI, CDN, integrations): https://locize.com 💙
+
+ ✓ tests/domain.test.ts (5 tests) 65ms
+
+ Test Files  7 passed (7)
+      Tests  84 passed (84)
+   Start at  01:11:31
+   Duration  46.97s (transform 638ms, setup 0ms, collect 4.51s, tests 39.48s, environment 1ms, prepare 858ms)
+

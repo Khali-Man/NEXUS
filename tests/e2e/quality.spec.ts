@@ -1,5 +1,6 @@
 import { test, expect } from "@playwright/test";
 import AxeBuilder from "@axe-core/playwright";
+import { assuranceVisualMetrics } from "./fixtures/assurance";
 const password = process.env.DEMO_PASSWORD || "Nexus-Demo-2026!";
 const surfaces = [
   {
@@ -54,6 +55,13 @@ for (const surface of surfaces)
     await page.emulateMedia({ reducedMotion: "reduce" });
     const errors: string[] = [];
     page.on("pageerror", (e) => errors.push(e.message));
+    if (surface.role === "supervisor") {
+      // Pixel comparisons need stable layout inputs, including row count.
+      // The product journey separately exercises unmocked metrics/replay/export.
+      await page.route("**/api/v1/assurance/metrics", (route) =>
+        route.fulfill({ json: assuranceVisualMetrics }),
+      );
+    }
     if (surface.role) {
       await page.goto(
         surface.base +
@@ -65,6 +73,22 @@ for (const surface of surfaces)
       await page.waitForURL("**" + surface.path);
     } else await page.goto(surface.base + surface.path);
     await expect(page.locator("h1")).toBeVisible();
+    if (surface.role === "supervisor") {
+      await expect(page.locator("tbody tr")).toHaveCount(16);
+      await expect(page.locator(".stat-card strong")).toHaveText([
+        "30 s",
+        "60 s",
+        "30 s",
+        "180 s",
+      ]);
+      await expect(
+        page
+          .locator("tbody tr")
+          .first()
+          .locator("td")
+          .filter({ hasText: "Not measured" }),
+      ).toHaveCount(4);
+    }
     await page.evaluate(() => document.fonts.ready);
     await expect(page.locator("html")).toHaveAttribute("lang", "en-NG");
     const results = await new AxeBuilder({ page })

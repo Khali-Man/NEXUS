@@ -106,7 +106,21 @@ test("supervisor audit, replay and redacted exports use server records", async (
   page,
 }) => {
   await page.setViewportSize({ width: 1440, height: 900 });
+  const metricsResponse = page.waitForResponse(
+    (response) =>
+      response.url().endsWith("/api/v1/assurance/metrics") &&
+      response.request().method() === "GET",
+  );
   await signIn(page, "supervisor");
+  const metrics = await metricsResponse;
+  expect(metrics.ok()).toBe(true);
+  const confirmed = await metrics.json();
+  expect(confirmed.sampleSize).toBeGreaterThan(0);
+  expect(confirmed.sampleSize).toBe(confirmed.items.length);
+  await expect(page.locator("tbody tr")).toHaveCount(confirmed.sampleSize);
+  await expect(page.locator("tbody tr").first()).toContainText(
+    confirmed.items[0].public_reference,
+  );
   await expect(
     page.getByRole("heading", { name: "Accountability, in the details." }),
   ).toBeVisible();
