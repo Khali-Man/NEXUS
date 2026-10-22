@@ -283,47 +283,133 @@ function Responder() {
 }
 function InboxView() {
   const data = useApi("/responder/assignments");
+  const [historyPage, setHistoryPage] = useState(0);
+  const items = data.data?.items || [];
+  const current = items.filter((i: any) =>
+    ["ACCEPTED", "ACTIVE"].includes(i.assignment_status),
+  );
+  const incoming = items.filter((i: any) => i.assignment_status === "OFFERED");
+  const history = items.filter(
+    (i: any) =>
+      !["OFFERED", "ACCEPTED", "ACTIVE"].includes(i.assignment_status),
+  );
+  function card(i: any, historical = false) {
+    return (
+      <a
+        className={
+          "panel mission-card " +
+          (historical
+            ? "history-mission"
+            : i.assignment_status === "OFFERED"
+              ? "incoming-mission"
+              : "active-mission")
+        }
+        key={i.assignment_id}
+        href={"/responder/assignments/" + i.assignment_id}
+      >
+        <div>
+          <span className="reference">{i.public_reference}</span>
+          <Status
+            value={
+              i.assignment_status === "ACTIVE" ? i.status : i.assignment_status
+            }
+          />
+        </div>
+        <h2>{t("category." + i.category)}</h2>
+        <p>
+          <MapPin size={15} />
+          {i.landmark}
+        </p>
+        {i.updated_at && (
+          <small className="mission-updated">
+            {t("common.timestamp")}: {date(i.updated_at)}
+          </small>
+        )}
+        <div className="mission-footer">
+          <span>
+            <Truck size={15} />
+            {i.callsign}
+          </span>
+          <ArrowUpRight size={20} />
+        </div>
+        {i.assignment_status === "OFFERED" && (
+          <small>
+            {t("cad.offerExpiry")}: {date(i.expires_at)}
+          </small>
+        )}
+      </a>
+    );
+  }
   return (
     <>
       <p className="eyebrow">{t("legal.short")}</p>
       <h1>{t("responder.title")}</h1>
       <p className="subtle">{t("responder.subtitle")}</p>
-      <div className="field-section-heading">
-        <h2>{t("responder.inbox")}</h2>
-        <span>{data.data?.items.length || 0}</span>
-      </div>
       <ErrorBox error={data.error} />
-      {data.data?.items.map((i: any) => (
-        <a
-          className="panel mission-card"
-          key={i.assignment_id}
-          href={"/responder/assignments/" + i.assignment_id}
-        >
-          <div>
-            <span className="reference">{i.public_reference}</span>
-            <Status value={i.assignment_status} />
-          </div>
-          <h2>{t("category." + i.category)}</h2>
-          <p>
-            <MapPin size={15} />
-            {i.landmark}
-          </p>
-          <div className="mission-footer">
-            <span>
-              <Truck size={15} />
-              {i.callsign}
-            </span>
-            <ArrowUpRight size={20} />
-          </div>
-          {i.assignment_status === "OFFERED" && (
-            <small>
-              {t("cad.offerExpiry")}: {date(i.expires_at)}
-            </small>
-          )}
-        </a>
-      ))}
-      {data.data && !data.data.items.length && (
-        <Empty text="responder.noMissions" />
+      {data.isPending && <Loading />}
+      {data.data && (
+        <>
+          <section className="mission-group" aria-labelledby="current-missions">
+            <div className="field-section-heading">
+              <h2 id="current-missions">{t("responder.active")}</h2>
+              <span>{current.length}</span>
+            </div>
+            <p className="field-group-note">{t("responder.currentNote")}</p>
+            {current.length ? (
+              current.map((i: any) => card(i))
+            ) : (
+              <p className="field-empty">
+                <Truck size={19} />
+                {t("responder.noCurrent")}
+              </p>
+            )}
+          </section>
+          <section
+            className="mission-group"
+            aria-labelledby="incoming-missions"
+          >
+            <div className="field-section-heading">
+              <h2 id="incoming-missions">{t("responder.incoming")}</h2>
+              <span>{incoming.length}</span>
+            </div>
+            <p className="field-group-note">{t("responder.incomingNote")}</p>
+            {incoming.length ? (
+              incoming.map((i: any) => card(i))
+            ) : (
+              <p className="field-empty">
+                <Inbox size={19} />
+                {t("responder.noIncoming")}
+              </p>
+            )}
+          </section>
+          <details className="mission-history">
+            <summary>
+              {t("responder.historyCount", { count: history.length })}
+            </summary>
+            <p className="field-group-note">{t("responder.historyNote")}</p>
+            {history
+              .slice(historyPage * 8, (historyPage + 1) * 8)
+              .map((i: any) => card(i, true))}
+            {history.length > 8 && (
+              <div className="pagination">
+                <button
+                  disabled={!historyPage}
+                  onClick={() => setHistoryPage(historyPage - 1)}
+                >
+                  {t("common.previous")}
+                </button>
+                <span>{t("common.pagination", { page: historyPage + 1 })}</span>
+                <button
+                  disabled={(historyPage + 1) * 8 >= history.length}
+                  onClick={() => setHistoryPage(historyPage + 1)}
+                >
+                  {t("common.next")}
+                </button>
+              </div>
+            )}
+          </details>
+          <p className="field-group-note">{t("responder.historyLimit")}</p>
+        </>
       )}
     </>
   );

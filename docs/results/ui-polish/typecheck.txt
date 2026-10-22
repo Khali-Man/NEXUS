@@ -1,0 +1,1 @@
+$ tsc --noEmit && pnpm --filter @nexus/cad-web exec tsc --noEmit

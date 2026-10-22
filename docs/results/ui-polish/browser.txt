@@ -1,0 +1,32 @@
+$ playwright test
+
+Running 24 tests using 1 worker
+
+(node:60505) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  ✓   1 tests/e2e/integrity-routing.spec.ts:17:1 › supervisor signs and independently verifies a downloaded covered-history bundle (1.7s)
+  ✓   2 tests/e2e/integrity-routing.spec.ts:69:1 › route UI displays declared provider fixtures and removes the route when estimates fail (1.9s)
+  ✓   3 tests/e2e/product.spec.ts:32:1 › citizen mobile journey creates a private server-confirmed receipt (1.0s)
+  ✓   4 tests/e2e/product.spec.ts:67:1 › CAD login, live queue, filters, map fallback and unit board work (2.7s)
+  ✓   5 tests/e2e/product.spec.ts:107:1 › supervisor audit, replay and redacted exports use server records (1.8s)
+  ✓   6 tests/e2e/product.spec.ts:156:1 › admin creates deterministic scenario, advances commands and toggles map failure (1.9s)
+  ✓   7 tests/e2e/product.spec.ts:215:1 › responder displays server missions and durable outbox/profile (1.1s)
+  ✓   8 tests/e2e/product.spec.ts:241:1 › citizen keyboard, reduced motion, browser locale fallback and all mobile viewports (1.2s)
+  ✓   9 tests/e2e/product.spec.ts:272:1 › command layouts fit required desktop and tablet viewports (4.3s)
+  ✓  10 tests/e2e/product.spec.ts:295:1 › offline responder acceptance stays local, reconnects, and completes one integrated lifecycle (12.2s)
+  ✓  11 tests/e2e/product.spec.ts:482:1 › English fallback, denied GPS, local-only position preview, and long-string layouts remain usable (1.9s)
+  ✓  12 tests/e2e/quality.spec.ts:56:3 › citizen accessibility and visual contract (971ms)
+  ✓  13 tests/e2e/quality.spec.ts:56:3 › command accessibility and visual contract (1.8s)
+  ✓  14 tests/e2e/quality.spec.ts:56:3 › assurance accessibility and visual contract (1.7s)
+  ✓  15 tests/e2e/quality.spec.ts:56:3 › simulator accessibility and visual contract (1.7s)
+  ✓  16 tests/e2e/quality.spec.ts:56:3 › responder accessibility and visual contract (1.2s)
+  ✓  17 tests/e2e/ui-polish.spec.ts:35:3 › citizen uses accessible desktop, tablet and mobile layouts with reduced motion (2.7s)
+  ✓  18 tests/e2e/ui-polish.spec.ts:35:3 › dispatcher uses accessible desktop, tablet and mobile layouts with reduced motion (6.7s)
+  ✓  19 tests/e2e/ui-polish.spec.ts:35:3 › responder uses accessible desktop, tablet and mobile layouts with reduced motion (4.6s)
+  ✓  20 tests/e2e/ui-polish.spec.ts:35:3 › supervisor uses accessible desktop, tablet and mobile layouts with reduced motion (3.9s)
+  ✓  21 tests/e2e/ui-polish.spec.ts:35:3 › administrator uses accessible desktop, tablet and mobile layouts with reduced motion (3.9s)
+  ✓  22 tests/e2e/ui-polish.spec.ts:178:1 › citizen journey explains confirmation without premature receipt advice (546ms)
+  ✓  23 tests/e2e/ui-polish.spec.ts:199:1 › supervisor explores real coverage, missing records, timestamps and replay (2.0s)
+  ✓  24 tests/e2e/ui-polish.spec.ts:261:1 › administrator discovers fixtures, navigates history and reloads persisted unit fault state (2.2s)
+
+  24 passed (1.1m)

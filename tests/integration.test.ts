@@ -31,6 +31,7 @@ async function report(key = randomUUID()) {
       response.body.reference,
     ])
   )[0];
+  expect(row.agency_id).toBe(agency);
   return { row, receipt: response.body, body, key };
 }
 async function act(
@@ -69,6 +70,15 @@ async function respond(r: any, action: string, key = randomUUID()) {
       expected_version: r.row.version,
       reason: "Synthetic responder test",
       client_occurred_at: "2026-01-01T00:00:00.000Z",
+    });
+}
+async function withdraw(r: any) {
+  return agents.dispatcher
+    .post("/api/v1/cad/assignments/" + r.assignment + "/withdraw")
+    .set("Idempotency-Key", randomUUID())
+    .send({
+      expected_version: r.row.version,
+      reason: "Fictional offer withdrawal",
     });
 }
 beforeAll(async () => {
@@ -465,6 +475,20 @@ describe("persistent secured workflow", () => {
     }
     response = await act(r.row, "close", {}, "supervisor");
     expect(response.status).toBe(200);
+    expect(
+      (
+        await agents.dispatcher.get(
+          "/api/v1/cad/incidents?q=" + r.receipt.reference + "&active=true",
+        )
+      ).body.items,
+    ).toHaveLength(0);
+    expect(
+      (
+        await agents.dispatcher.get(
+          "/api/v1/cad/incidents?q=" + r.receipt.reference + "&active=false",
+        )
+      ).body.items,
+    ).toHaveLength(1);
     const tracked = await request(app)
       .get("/api/v1/demo/incidents/" + r.receipt.reference + "/status")
       .set("X-Receipt-Token", r.receipt.receiptToken);
@@ -707,6 +731,233 @@ describe("persistent secured workflow", () => {
     expect(
       (await sql("SELECT count(*)::int AS n FROM incident_events"))[0].n,
     ).toBeGreaterThanOrEqual(count);
+  });
+  it("persists agency unit fault state through heartbeat, fixture creation and release", async () => {
+    const offered = await prepareOffer();
+    const fault = (name: string, enabled: boolean) =>
+      agents.admin
+        .post("/api/v1/simulator/faults")
+        .set("Idempotency-Key", randomUUID())
+        .send({ fault: name, enabled });
+    try {
+      for (const name of ["stale_locations", "unit_unavailable"])
+        expect((await fault(name, true)).status).toBe(200);
+      const stored = (
+        await sql("SELECT * FROM simulation_unit_faults WHERE agency_id=$1", [
+          agency,
+        ])
+      )[0];
+      expect(stored.stale_locations).toBe(true);
+      expect(stored.unit_unavailable).toBe(true);
+      const freshSession = request.agent(app);
+      await freshSession.post("/api/v1/auth/login").send({
+        username: "admin",
+        password: process.env.DEMO_PASSWORD || "Nexus-Demo-2026!",
+      });
+      expect(
+        (await freshSession.get("/api/v1/cad/network")).body.settings,
+      ).toMatchObject({ stale_locations: true, unit_unavailable: true });
+      expect(
+        (
+          await agents.responder
+            .post("/api/v1/responder/heartbeat")
+            .set("Idempotency-Key", randomUUID())
+            .send({})
+        ).status,
+      ).toBe(200);
+      expect(
+        (
+          await sql(
+            "SELECT recorded_at<now()-interval '5 minutes' AS stale FROM unit_current_locations WHERE unit_id=$1",
+            [unitA],
+          )
+        )[0].stale,
+      ).toBe(true);
+      expect(
+        (await sql("SELECT dispatch_status FROM units WHERE id=$1", [unitA]))[0]
+          .dispatch_status,
+      ).not.toBe("OFFLINE");
+      expect((await withdraw(offered)).status).toBe(200);
+      expect(
+        (await sql("SELECT dispatch_status FROM units WHERE id=$1", [unitA]))[0]
+          .dispatch_status,
+      ).toBe("OFFLINE");
+      expect(
+        (
+          await agents.admin
+            .post("/api/v1/simulator/scenarios/traffic-osogbo-main/run")
+            .set("Idempotency-Key", randomUUID())
+            .send({ seed: 2026 })
+        ).status,
+      ).toBe(200);
+      expect(
+        (
+          await sql(
+            "SELECT count(*)::int AS n FROM units WHERE agency_id=$1 AND dispatch_status='AVAILABLE'",
+            [agency],
+          )
+        )[0].n,
+      ).toBe(0);
+    } finally {
+      for (const name of ["stale_locations", "unit_unavailable"])
+        await fault(name, false);
+    }
+    expect(
+      (await agents.admin.get("/api/v1/cad/network")).body.settings,
+    ).toMatchObject({ stale_locations: false, unit_unavailable: false });
+  });
+  it("paginates and filters persisted run history, and clears all injection state on reset", async () => {
+    const first = await agents.admin.get(
+      "/api/v1/simulator/scenarios?limit=2&offset=0",
+    );
+    const next = await agents.admin.get(
+      "/api/v1/simulator/scenarios?limit=2&offset=2",
+    );
+    expect(first.status).toBe(200);
+    expect(first.body.runs.length).toBeLessThanOrEqual(2);
+    expect(first.body.totalRuns).toBeGreaterThanOrEqual(2);
+    expect(
+      next.body.runs.every(
+        (r: any) => !first.body.runs.some((f: any) => f.id === r.id),
+      ),
+    ).toBe(true);
+    const filtered = await agents.admin.get(
+      "/api/v1/simulator/scenarios?scenario=traffic-osogbo-main&runStatus=active",
+    );
+    expect(
+      filtered.body.runs.every(
+        (r: any) =>
+          r.results_json.slug === "traffic-osogbo-main" && !r.completed_at,
+      ),
+    ).toBe(true);
+    expect(
+      (await agents.admin.get("/api/v1/simulator/scenarios?offset=-1")).status,
+    ).toBe(400);
+    expect(
+      (
+        await agents.dispatcher.get(
+          "/api/v1/simulator/runs/" + first.body.runs[0].id,
+        )
+      ).status,
+    ).toBe(403);
+    expect(
+      (
+        await agents.admin.get(
+          "/api/v1/simulator/runs/" + first.body.runs[0].id,
+        )
+      ).body.id,
+    ).toBe(first.body.runs[0].id);
+    for (const name of ["stale_locations", "unit_unavailable", "ack_delay_ms"])
+      await agents.admin
+        .post("/api/v1/simulator/faults")
+        .set("Idempotency-Key", randomUUID())
+        .send({ fault: name, enabled: true });
+    const foreignAgency = (
+      await sql(
+        "INSERT INTO agencies(demo_name,category) VALUES('Fictional run-scope test','RESEARCH') RETURNING id",
+      )
+    )[0].id;
+    const username = "run-scope-" + randomUUID();
+    const password = process.env.DEMO_PASSWORD || "Nexus-Demo-2026!";
+    await sql(
+      "INSERT INTO users(username,demo_name,role,agency_id,password_hash) VALUES($1,'Fictional scoped admin','admin',$2,$3)",
+      [username, foreignAgency, passwordHash(password)],
+    );
+    const foreign = request.agent(app);
+    expect(
+      (await foreign.post("/api/v1/auth/login").send({ username, password }))
+        .status,
+    ).toBe(200);
+    expect(
+      (await foreign.get("/api/v1/cad/network")).body.settings,
+    ).toMatchObject({ stale_locations: false, unit_unavailable: false });
+    expect(
+      (await foreign.get("/api/v1/simulator/scenarios")).body.totalRuns,
+    ).toBe(0);
+    const scopedFixture = await foreign
+      .post("/api/v1/simulator/scenarios/audit-tamper/run")
+      .set("Idempotency-Key", randomUUID())
+      .send({ seed: 2026 });
+    expect(scopedFixture.status, scopedFixture.text).toBe(200);
+    expect(
+      (
+        await sql("SELECT agency_id FROM incidents WHERE id=$1", [
+          scopedFixture.body.results_json.incidentId,
+        ])
+      )[0].agency_id,
+    ).toBe(foreignAgency);
+    expect(
+      (await foreign.get("/api/v1/simulator/runs/" + first.body.runs[0].id))
+        .status,
+    ).toBe(404);
+    expect(
+      (
+        await foreign
+          .post(
+            "/api/v1/simulator/scenarios/" + first.body.runs[0].id + "/step",
+          )
+          .set("Idempotency-Key", randomUUID())
+          .send({})
+      ).status,
+    ).toBe(404);
+    await agents.admin
+      .post("/api/v1/simulator/reset")
+      .set("Idempotency-Key", randomUUID())
+      .send({ confirmation: "RESET SYNTHETIC DATA" });
+    expect(
+      (await agents.admin.get("/api/v1/cad/network")).body.settings,
+    ).toMatchObject({
+      stale_locations: false,
+      unit_unavailable: false,
+      ack_delay_ms: 0,
+    });
+    const stopped = await agents.admin.get(
+      "/api/v1/simulator/scenarios?runStatus=stopped",
+    );
+    expect(stopped.body.runs.length).toBeGreaterThan(0);
+    expect(
+      stopped.body.runs.every(
+        (r: any) => r.stopped_at && r.stop_reason === "SIMULATION_RESET",
+      ),
+    ).toBe(true);
+    expect(
+      (
+        await agents.admin
+          .post(
+            "/api/v1/simulator/scenarios/" + stopped.body.runs[0].id + "/step",
+          )
+          .set("Idempotency-Key", randomUUID())
+          .send({})
+      ).body.code,
+    ).toBe("RUN_STOPPED_BY_RESET");
+  });
+  it("measures acknowledgement from the accepted assignment after a withdrawn offer", async () => {
+    const offered = await prepareOffer();
+    const withdrawn = await withdraw(offered);
+    const second = await act(withdrawn.body.incident, "assignments", {
+      unit_id: unitA,
+    });
+    expect(second.status, second.text).toBe(200);
+    const accepted = await respond(
+      {
+        row: second.body.incident,
+        assignment: second.body.event.metadata.assignmentId,
+      },
+      "accept",
+    );
+    expect(accepted.status, accepted.text).toBe(200);
+    const actualOffer = (
+      await sql("SELECT offered_at FROM assignments WHERE id=$1", [
+        second.body.event.metadata.assignmentId,
+      ])
+    )[0].offered_at;
+    const metrics = await agents.supervisor.get("/api/v1/assurance/metrics");
+    const row = metrics.body.items.find((i: any) => i.id === offered.row.id);
+    expect(row.acknowledged_offer_at).toBe(actualOffer.toISOString());
+    expect(Date.parse(row.acknowledged_offer_at)).toBeGreaterThan(
+      Date.parse(row.offered_at),
+    );
+    expect((await act(accepted.body.incident, "reassign")).status).toBe(200);
   });
   it("keeps communication notes and human-related receipts in append-only context", async () => {
     const a = await report(),

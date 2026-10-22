@@ -40,6 +40,8 @@ Demo usernames are `dispatcher`, `responder`, `supervisor`, and `admin`. The ini
 
 ## Verification
 
+See the [latest five-workspace UI review, before/after screenshots and exact checks](docs/UI_POLISH.md).
+
 ```powershell
 pnpm lint
 pnpm typecheck
@@ -64,7 +66,7 @@ Production frontend builds are `apps/cad-web/.next` and both PWA `dist` director
 
 ## Maps and offline operation
 
-Public OpenStreetMap geometry can be imported with `pnpm maps:download`, then `pnpm maps:prepare` and `pnpm maps:up` prepare/serve a pinned local OSRM car-routing graph. Configure `OSRM_BASE_URL` and `ROUTING_DATA_VERSION` as documented in [map configuration](infra/maps/README.md). Candidate cards show source, timestamp, model travel time and an optional route overlay. No live traffic or arrival guarantee is claimed. Missing data/service yields explicitly unavailable ETA and geographic distance; a labelled background/list fallback remains usable without external data. Real Osogbo import/route verification is currently blocked by the cloud network policy.
+Public OpenStreetMap geometry can be imported with `pnpm maps:download`, then `pnpm maps:prepare` and `pnpm maps:up` prepare/serve a pinned local OSRM car-routing graph. Configure `OSRM_BASE_URL` and `ROUTING_DATA_VERSION` as documented in [map configuration](infra/maps/README.md). Candidate cards show source, timestamp, model travel time and an optional route overlay. No live traffic or arrival guarantee is claimed. Missing data/service yields explicitly unavailable ETA and geographic distance; a labelled location-intelligence board with recorded landmarks, coordinates, counts and freshness lists remains usable without external data. Real Osogbo import/route verification is currently blocked by the cloud network policy.
 
 Manual and scheduled audit checkpoints now use Ed25519. Download covered-history bundles in supervisor audit and verify with `pnpm audit:verify bundle.json independently-held-public-keys.json`. See [key management, rotation, revocation and trust limits](docs/AUDIT_SIGNING.md). Legacy unsigned records remain labelled. No external anchor is configured.
 
@@ -73,7 +75,7 @@ After a production PWA's first successful load, its service worker caches public
 ## Maintenance and troubleshooting
 
 - `pnpm db:up`, `pnpm db:migrate`, `pnpm db:seed` can be run separately from the root. Migrations are transactionally versioned; seeds preserve existing accounts.
-- To cancel all active synthetic incidents, use the admin reset control and type `RESET SYNTHETIC DATA`. Events remain append-only; reset does not delete research history or destroy the Docker volume.
+- To cancel all active synthetic incidents, use the admin reset control and type `RESET SYNTHETIC DATA`. Runs interrupted by reset are marked stopped; all injection flags are cleared. Events remain append-only; reset does not delete research history or destroy the Docker volume.
 - Stop `pnpm dev` with Ctrl+C. It terminates the process groups it started. Ports are fixed; Vite refuses to silently choose another port.
 - Missing `RECEIPT_KEY`: run `pnpm setup`. Keep the generated ignored `.env` private and retain it to reproduce capabilities. Rotating it affects derived retry tokens; expire existing receipts when rotating.
 - If package tools cannot write home caches in the cloud, export `XDG_DATA_HOME=/workspace/.cache/data`, `XDG_CACHE_HOME=/workspace/.cache` and `npm_config_cache=/workspace/.cache/npm`. The checked-in npm configuration uses workspace caches. On another machine pnpm may use its standard platform cache; the project does not rely on its contents.

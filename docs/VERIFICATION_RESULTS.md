@@ -1,5 +1,7 @@
 # Verification results — preservation review
 
+This is the historical 19 October preservation record. See [the 22 October UI review and current checks](UI_POLISH.md) for the subsequent interface changes, expanded tests and screenshot contracts.
+
 Validation host: Linux, 19 October 2026; Node 24.19.0, pnpm 11.25.0, Docker Engine 28.4.0, PostgreSQL 17.5/PostGIS 3.5.2. This is a fictional private research simulation. No operational emergency-service readiness is asserted.
 
 ## Exact commands and observed results

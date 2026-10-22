@@ -22,6 +22,7 @@ export const assuranceVisualMetrics = {
       triaged_at: stage >= 1 ? at(30) : null,
       offered_at: stage >= 2 ? at(60) : null,
       accepted_at: stage >= 3 ? at(90) : null,
+      acknowledged_offer_at: stage >= 3 ? at(60) : null,
       arrived_at: stage >= 4 ? at(180) : null,
     };
   }),

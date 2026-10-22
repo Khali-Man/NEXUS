@@ -1,0 +1,12 @@
+$ tsx tests/routing/osrm-engine.ts
+{
+  "timestamp": "2026-10-22T12:19:12.117Z",
+  "image": "ghcr.io/project-osrm/osrm-backend@sha256:855614a38f464b0558a2ad6eaa7cb8c139f39887da9b38b485ce453c6e6e6124",
+  "fixture": "fictional-network.osm (original test geometry, not real Osogbo roads)",
+  "forwardMetres": 331,
+  "reverseMetres": 995,
+  "forwardSeconds": 48,
+  "oneWayConstraintVerified": true,
+  "serviceOutageFallbackVerified": true,
+  "realOsogboDataVerified": false
+}

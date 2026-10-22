@@ -57,8 +57,9 @@ export function date(value: any, utc = false) {
     timeZoneName: "short",
   }).format(new Date(value));
 }
-export function number(value: number) {
-  return new Intl.NumberFormat("en-NG", { maximumFractionDigits: 1 }).format(
-    value,
-  );
+export function number(value: number, options: Intl.NumberFormatOptions = {}) {
+  return new Intl.NumberFormat("en-NG", {
+    maximumFractionDigits: 1,
+    ...options,
+  }).format(value);
 }

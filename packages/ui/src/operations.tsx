@@ -42,6 +42,12 @@ import {
 } from "./atoms";
 import { GeoMap } from "./map";
 import { categories } from "../../contracts/src/index";
+import {
+  measurementFields,
+  measurementSeconds,
+  measurementSummary,
+} from "./measurements";
+import { Simulator } from "./simulator";
 const links = [
   ["/cad", "nav.cad", LayoutDashboard],
   ["/cad/live", "nav.live", Command],
@@ -495,6 +501,7 @@ function Filters({
   setCategory,
   priority,
   setPriority,
+  hideSearch = false,
 }: {
   query: string;
   setQuery: (s: string) => void;
@@ -504,72 +511,84 @@ function Filters({
   setCategory: (s: string) => void;
   priority?: string;
   setPriority?: (s: string) => void;
+  hideSearch?: boolean;
 }) {
   return (
     <div className="filters" role="search">
-      <label className="search-box">
-        <Search size={16} />
-        <input
-          value={query}
-          onChange={(e) => setQuery(e.target.value)}
-          placeholder={t("common.search")}
-          aria-label={t("accessibility.search")}
-        />
-      </label>
-      <select
-        aria-label={t("common.status")}
-        value={status}
-        onChange={(e) => setStatus(e.target.value)}
-      >
-        <option value="">
-          {t("common.status")}: {t("common.all")}
-        </option>
-        {[
-          "RECEIVED",
-          "TRIAGED",
-          "WAITING_FOR_UNIT",
-          "OFFERED",
-          "ACCEPTED",
-          "EN_ROUTE_REPORTED",
-          "ARRIVAL_REPORTED",
-          "RESOLVED",
-          "CLOSED",
-          "CANCELLED",
-        ].map((s) => (
-          <option key={s} value={s}>
-            {t("status." + s)}
-          </option>
-        ))}
-      </select>
-      <select
-        aria-label={t("common.category")}
-        value={category}
-        onChange={(e) => setCategory(e.target.value)}
-      >
-        <option value="">
-          {t("common.category")}: {t("common.all")}
-        </option>
-        {categories.map((s) => (
-          <option key={s} value={s}>
-            {t("category." + s)}
-          </option>
-        ))}
-      </select>
-      {setPriority && (
+      {!hideSearch && (
+        <label className="search-box">
+          <Search size={16} />
+          <input
+            value={query}
+            onChange={(e) => setQuery(e.target.value)}
+            placeholder={t("common.search")}
+            aria-label={t("accessibility.search")}
+          />
+        </label>
+      )}
+      <label className="filter-field">
+        <span>{t("common.status")}</span>
         <select
-          aria-label={t("common.priority")}
-          value={priority}
-          onChange={(e) => setPriority(e.target.value)}
+          aria-label={t("common.status")}
+          value={status}
+          onChange={(e) => setStatus(e.target.value)}
         >
           <option value="">
-            {t("common.priority")}: {t("common.all")}
+            {t("common.status")}: {t("common.all")}
           </option>
-          {["LOW", "MEDIUM", "HIGH", "CRITICAL"].map((s) => (
+          {[
+            "RECEIVED",
+            "TRIAGED",
+            "WAITING_FOR_UNIT",
+            "OFFERED",
+            "ACCEPTED",
+            "EN_ROUTE_REPORTED",
+            "ARRIVAL_REPORTED",
+            "RESOLVED",
+            "CLOSED",
+            "CANCELLED",
+          ].map((s) => (
             <option key={s} value={s}>
-              {t("priority." + s)}
+              {t("status." + s)}
             </option>
           ))}
         </select>
+      </label>
+      <label className="filter-field">
+        <span>{t("common.category")}</span>
+        <select
+          aria-label={t("common.category")}
+          value={category}
+          onChange={(e) => setCategory(e.target.value)}
+        >
+          <option value="">
+            {t("common.category")}: {t("common.all")}
+          </option>
+          {categories.map((s) => (
+            <option key={s} value={s}>
+              {t("category." + s)}
+            </option>
+          ))}
+        </select>
+      </label>
+      {setPriority && (
+        <label className="filter-field">
+          <span>{t("common.priority")}</span>
+          <select
+            aria-label={t("common.priority")}
+            value={priority}
+            onChange={(e) => setPriority(e.target.value)}
+          >
+            <option value="">
+              {t("common.priority")}: {t("common.all")}
+            </option>
+            {["LOW", "MEDIUM", "HIGH", "CRITICAL"].map((s) => (
+              <option key={s} value={s}>
+                {t("priority." + s)}
+              </option>
+            ))}
+          </select>
+        </label>
       )}
     </div>
   );
@@ -733,6 +752,7 @@ function LiveWorkspace() {
     [category, setCategory] = useState(""),
     [priority, setPriority] = useState(""),
     [from, setFrom] = useState(""),
+    [includeClosed, setIncludeClosed] = useState(false),
     [selected, setSelected] = useState<string>(),
     [panel, setPanel] = useState(380);
   const incidents = useApi(
@@ -744,6 +764,9 @@ function LiveWorkspace() {
           priority,
           ...(from ? { from } : {}),
           limit: "100",
+          active: String(
+            !includeClosed && !["CLOSED", "CANCELLED"].includes(status),
+          ),
         }),
     ),
     units = useApi("/cad/units"),
@@ -771,27 +794,93 @@ function LiveWorkspace() {
             <h2>{t("cad.queue")}</h2>
             <span>{incidents.data?.total || 0}</span>
           </div>
-          <Filters
-            query={q}
-            setQuery={setQ}
-            status={status}
-            setStatus={setStatus}
-            category={category}
-            setCategory={setCategory}
-            priority={priority}
-            setPriority={setPriority}
-          />
-          <div className="queue-date">
-            <label>
-              {t("common.from")}
-              <input
-                type="date"
-                value={from}
-                onChange={(e) => setFrom(e.target.value)}
-              />
-            </label>
+          <p className="queue-scope">{t("cad.queueScope")}</p>
+          <div
+            className="queue-presets"
+            role="group"
+            aria-label={t("common.status")}
+          >
+            {[
+              ["RECEIVED", "cad.needsTriage"],
+              ["OFFERED", "cad.awaitingAck"],
+            ].map(([value, label]) => (
+              <button
+                key={value}
+                aria-pressed={status === value}
+                onClick={() => setStatus(status === value ? "" : value)}
+              >
+                {t(label)}
+              </button>
+            ))}
           </div>
+          <label className="search-box queue-search">
+            <Search size={16} />
+            <input
+              value={q}
+              onChange={(e) => setQ(e.target.value)}
+              placeholder={t("common.search")}
+              aria-label={t("accessibility.search")}
+            />
+          </label>
+          <details className="queue-refinements">
+            <summary>
+              {t("cad.filterQueue")}
+              <span>
+                {t("cad.filterCount", {
+                  count: [status, category, priority, from].filter(Boolean)
+                    .length,
+                })}
+              </span>
+            </summary>
+            <Filters
+              hideSearch
+              query={q}
+              setQuery={setQ}
+              status={status}
+              setStatus={setStatus}
+              category={category}
+              setCategory={setCategory}
+              priority={priority}
+              setPriority={setPriority}
+            />
+            <div className="queue-date">
+              <label>
+                {t("common.from")}
+                <input
+                  type="date"
+                  value={from}
+                  onChange={(e) => setFrom(e.target.value)}
+                />
+              </label>
+            </div>
+          </details>
+          {[q, status, category, priority, from, includeClosed].some(
+            Boolean,
+          ) && (
+            <button
+              className="queue-clear text-link"
+              onClick={() => {
+                setQ("");
+                setStatus("");
+                setCategory("");
+                setPriority("");
+                setFrom("");
+                setIncludeClosed(false);
+              }}
+            >
+              <X size={14} />
+              {t("common.clearFilters")}
+            </button>
+          )}
           <ErrorBox error={incidents.error} />
+          <label className="queue-closed-toggle">
+            <input
+              type="checkbox"
+              checked={includeClosed}
+              onChange={(e) => setIncludeClosed(e.target.checked)}
+            />
+            {t("cad.includeClosed")}
+          </label>
           <div className="queue-list">
             {incidents.data?.items.map((i: any) => (
               <button
@@ -800,6 +889,7 @@ function LiveWorkspace() {
                   "incident-card " + (selected === i.id ? "selected" : "")
                 }
                 onClick={() => setSelected(i.id)}
+                aria-pressed={selected === i.id}
               >
                 <div>
                   <span className="reference">{i.public_reference}</span>
@@ -853,6 +943,14 @@ function LiveWorkspace() {
               </span>
               <h2>{t("cad.detailsTitle")}</h2>
               <p>{t("cad.select")}</p>
+              <button
+                className="secondary"
+                disabled={!incidents.data?.items.length}
+                onClick={() => setSelected(incidents.data.items[0].id)}
+              >
+                {t("cad.openFirst")}
+                <ArrowRight size={16} />
+              </button>
             </div>
           )}
         </section>
@@ -1368,87 +1466,243 @@ function Network() {
 }
 function Assurance() {
   const data = useApi("/assurance/metrics");
-  const fields = [
-    ["triaged_at", "assurance.triage"],
-    ["offered_at", "assurance.offer"],
-    ["accepted_at", "assurance.ack"],
-    ["arrived_at", "assurance.arrival"],
-  ];
+  const [page, setPage] = useState(0),
+    [query, setQuery] = useState(""),
+    [coverage, setCoverage] = useState(""),
+    [timestamps, setTimestamps] = useState(false);
+  const items = data.data?.items || [];
+  const filtered = items.filter((i: any) => {
+    const complete = measurementFields.every(
+      ([field]) => measurementSeconds(i, field) !== null,
+    );
+    return (
+      i.public_reference.toLowerCase().includes(query.toLowerCase()) &&
+      (!coverage || (coverage === "complete" ? complete : !complete))
+    );
+  });
+  const currentPage = Math.min(
+    page,
+    Math.max(0, Math.ceil(filtered.length / 10) - 1),
+  );
   return (
     <>
       <PageHeading title="assurance.title" subtitle="assurance.subtitle" />
-      <div className="stats-grid">
-        {fields.map(([field, label]) => {
-          const measurements =
-            data.data?.items
-              .filter(
-                (i: any) =>
-                  i[field] && (field !== "accepted_at" || i.offered_at),
-              )
-              .map(
-                (i: any) =>
-                  (new Date(i[field]).getTime() -
-                    new Date(
-                      field === "accepted_at" ? i.offered_at : i.created_at,
-                    ).getTime()) /
-                  1000,
-              ) || [];
+      <ErrorBox error={data.error} />
+      <section className="evidence-note">
+        <ShieldCheck size={23} />
+        <div>
+          <h2>{t("assurance.evidenceBoundary")}</h2>
+          <p>{t("assurance.evidenceInfo")}</p>
+        </div>
+      </section>
+      <div className="coverage-heading">
+        <div>
+          <h2>{t("assurance.coverage")}</h2>
+          <p>{t("assurance.coverageInfo")}</p>
+          <p>{t("assurance.firstMilestoneInfo")}</p>
+        </div>
+        <span>
+          {data.data
+            ? t("assurance.sampleTotal", { count: items.length })
+            : t("common.loading")}
+        </span>
+      </div>
+      <div className="stats-grid measurement-grid">
+        {measurementFields.map(([field, label]) => {
+          const summary = measurementSummary(items, field);
           return (
-            <Stat
-              key={field}
-              label={label}
-              value={
-                measurements.length
-                  ? number(
-                      measurements.reduce((a: number, b: number) => a + b, 0) /
-                        measurements.length,
-                    ) + " s"
-                  : t("common.unknown")
-              }
-              icon={Clock}
-            />
+            <div key={field} className="stat-card measurement-card">
+              <div>
+                <span>{t(label)}</span>
+                <Clock size={17} />
+              </div>
+              <strong>
+                {summary.mean === null
+                  ? t("common.unknown")
+                  : t("assurance.seconds", { value: number(summary.mean) })}
+              </strong>
+              <span className="metric-definition">
+                {t("assurance.mean")}
+                <small>
+                  {t(
+                    field === "accepted_at"
+                      ? "assurance.fromOffer"
+                      : "assurance.fromReceipt",
+                  )}
+                </small>
+              </span>
+              <meter
+                min={0}
+                max={Math.max(1, items.length)}
+                value={summary.measured}
+                aria-label={
+                  t(label) +
+                  ": " +
+                  t("assurance.metricCoverage", {
+                    measured: summary.measured,
+                    total: items.length,
+                  })
+                }
+              />
+              <small className="metric-coverage">
+                {t("assurance.metricCoverage", {
+                  measured: number(summary.measured),
+                  total: number(items.length),
+                })}
+              </small>
+              <small className="metric-missing">
+                {t("assurance.metricMissing", {
+                  count: number(summary.missing),
+                })}
+              </small>
+            </div>
           );
         })}
       </div>
-      <section className="panel">
+      <section className="panel measurement-records">
         <div className="panel-heading">
-          <h2>{t("assurance.coverage")}</h2>
-          <span>
-            {t("common.count", { count: data.data?.sampleSize || 0 })}
-          </span>
+          <h2>{t("assurance.measurementRecords")}</h2>
+          <div
+            className="segmented"
+            role="group"
+            aria-label={t("assurance.measurementRecords")}
+          >
+            <button
+              aria-pressed={!timestamps}
+              onClick={() => setTimestamps(false)}
+            >
+              {t("assurance.durationView")}
+            </button>
+            <button
+              aria-pressed={timestamps}
+              onClick={() => setTimestamps(true)}
+            >
+              {t("assurance.timestampView")}
+            </button>
+          </div>
         </div>
-        <p className="panel-copy">{t("assurance.missing")}</p>
-        <ErrorBox error={data.error} />
-        <div className="table-scroll">
+        <div className="measurement-filters">
+          <label className="search-box">
+            <Search size={16} />
+            <input
+              aria-label={t("assurance.sampleSearch")}
+              placeholder={t("common.reference")}
+              value={query}
+              onChange={(e) => {
+                setQuery(e.target.value);
+                setPage(0);
+              }}
+            />
+          </label>
+          <label className="filter-field">
+            <span>{t("assurance.coverageFilter")}</span>
+            <select
+              value={coverage}
+              onChange={(e) => {
+                setCoverage(e.target.value);
+                setPage(0);
+              }}
+            >
+              <option value="">{t("assurance.allRecords")}</option>
+              <option value="gaps">{t("assurance.gapsOnly")}</option>
+              <option value="complete">{t("assurance.completeOnly")}</option>
+            </select>
+          </label>
+        </div>
+        <p className="table-scroll-hint">{t("assurance.scrollHint")}</p>
+        <div
+          className="table-scroll"
+          role="region"
+          aria-label={t("assurance.measurementRecords")}
+          tabIndex={0}
+        >
           <table>
+            <caption className="sr-only">
+              {t(
+                timestamps
+                  ? "assurance.timestampView"
+                  : "assurance.durationView",
+              )}{" "}
+              · {t("assurance.missing")}
+            </caption>
             <thead>
               <tr>
                 <th>{t("common.reference")}</th>
-                {fields.map(([key, label]) => (
+                {measurementFields.map(([key, label]) => (
                   <th key={key}>{t(label)}</th>
                 ))}
               </tr>
             </thead>
             <tbody>
-              {data.data?.items.map((i: any) => (
-                <tr key={i.id}>
-                  <td>
-                    <a
-                      className="reference"
-                      href={"/assurance/incidents/" + i.id + "/replay"}
-                    >
-                      {i.public_reference}
-                    </a>
-                  </td>
-                  {fields.map(([field]) => (
-                    <td key={field}>
-                      {i[field] ? date(i[field]) : t("common.unknown")}
+              {filtered
+                .slice(currentPage * 10, (currentPage + 1) * 10)
+                .map((i: any) => (
+                  <tr key={i.id}>
+                    <td>
+                      <a
+                        className="reference"
+                        href={"/assurance/incidents/" + i.id + "/replay"}
+                      >
+                        {i.public_reference}
+                      </a>
+                      <small>{date(i.created_at)}</small>
                     </td>
-                  ))}
-                </tr>
-              ))}
+                    {measurementFields.map(([field]) => (
+                      <td
+                        key={field}
+                        className={
+                          measurementSeconds(i, field) === null
+                            ? "missing-value"
+                            : "mono"
+                        }
+                      >
+                        {timestamps
+                          ? i[field]
+                            ? date(i[field])
+                            : t("common.unknown")
+                          : measurementSeconds(i, field) === null
+                            ? t("common.unknown")
+                            : t("assurance.seconds", {
+                                value: number(measurementSeconds(i, field)!),
+                              })}
+                        {timestamps &&
+                          field === "accepted_at" &&
+                          i.acknowledged_offer_at && (
+                            <small>
+                              {t("assurance.acknowledgedOffer", {
+                                time: date(i.acknowledged_offer_at),
+                              })}
+                            </small>
+                          )}
+                      </td>
+                    ))}
+                  </tr>
+                ))}
             </tbody>
           </table>
+        </div>
+        {data.isPending && <Loading />}
+        {data.data && !filtered.length && <Empty text="common.noMatches" />}
+        <div className="pagination">
+          <button
+            disabled={!currentPage}
+            onClick={() => setPage(currentPage - 1)}
+          >
+            {t("common.previous")}
+          </button>
+          <span>
+            {t("common.showing", {
+              from: filtered.length ? currentPage * 10 + 1 : 0,
+              to: Math.min((currentPage + 1) * 10, filtered.length),
+              total: filtered.length,
+            })}
+          </span>
+          <button
+            disabled={(currentPage + 1) * 10 >= filtered.length}
+            onClick={() => setPage(currentPage + 1)}
+          >
+            {t("common.next")}
+          </button>
         </div>
         <p className="panel-copy fine-print">{t("cad.timing")}</p>
       </section>
@@ -1488,7 +1742,25 @@ function Replay({ id }: { id: string }) {
             <Status value={data.data.incident.status} />
           </div>
           <div className="replay-controls">
-            <button className="primary" onClick={() => setPlaying(!playing)}>
+            <button
+              className="icon-button"
+              aria-label={t("assurance.previousEvent")}
+              disabled={index === 0}
+              onClick={() => {
+                setPlaying(false);
+                setIndex(index - 1);
+              }}
+            >
+              <ChevronRight size={18} className="rotate-back" />
+            </button>
+            <button
+              className="primary"
+              disabled={!events.length}
+              onClick={() => {
+                if (!playing && index >= events.length - 1) setIndex(0);
+                setPlaying(!playing);
+              }}
+            >
               {t(playing ? "assurance.pause" : "assurance.play")}
             </button>
             <input
@@ -1497,15 +1769,72 @@ function Replay({ id }: { id: string }) {
               min="0"
               max={Math.max(0, events.length - 1)}
               value={index}
-              onChange={(e) => setIndex(Number(e.target.value))}
+              onChange={(e) => {
+                setPlaying(false);
+                setIndex(Number(e.target.value));
+              }}
             />
             <span className="mono">
               {index + 1} / {events.length}
             </span>
+            <button
+              className="icon-button"
+              aria-label={t("assurance.nextEvent")}
+              disabled={index >= events.length - 1}
+              onClick={() => {
+                setPlaying(false);
+                setIndex(index + 1);
+              }}
+            >
+              <ChevronRight size={18} />
+            </button>
           </div>
+          <p className="replay-context">{t("assurance.replayContext")}</p>
           {event && (
             <div className="replay-detail">
-              <EventTimeline events={events.slice(0, index + 1)} />
+              <div>
+                <nav
+                  className="replay-index"
+                  aria-label={t("assurance.replay")}
+                >
+                  <ol>
+                    {events.map((e: any, n: number) => (
+                      <li key={e.id}>
+                        <button
+                          aria-current={index === n ? "step" : undefined}
+                          onClick={() => {
+                            setPlaying(false);
+                            setIndex(n);
+                          }}
+                        >
+                          <span className="mono">
+                            {String(n + 1).padStart(2, "0")}
+                          </span>
+                          <span>
+                            {e.event_type}
+                            <small>{date(e.server_occurred_at)}</small>
+                          </span>
+                        </button>
+                      </li>
+                    ))}
+                  </ol>
+                </nav>
+                <p className="replay-elapsed" role="status">
+                  {t("assurance.replaySelected", {
+                    current: index + 1,
+                    total: events.length,
+                  })}{" "}
+                  ·{" "}
+                  {t("assurance.replayElapsed", {
+                    seconds: number(
+                      (Date.parse(event.server_occurred_at) -
+                        Date.parse(data.data.incident.created_at)) /
+                        1000,
+                    ),
+                  })}
+                </p>
+                <EventTimeline events={[event]} />
+              </div>
               <dl>
                 <dt>{t("assurance.event")}</dt>
                 <dd>{event.event_type}</dd>
@@ -1728,208 +2057,6 @@ function Reviews() {
           ))
         ) : (
           <Empty />
-        )}
-      </section>
-    </>
-  );
-}
-function Simulator({ slug }: { slug?: string }) {
-  const data = useApi("/simulator/scenarios"),
-    network = useApi("/cad/network"),
-    [seed, setSeed] = useState(2026),
-    [error, setError] = useState<any>(),
-    [tamper, setTamper] = useState<any>();
-  async function run(slug: string) {
-    try {
-      setError(null);
-      await api("/simulator/scenarios/" + slug + "/run", { seed });
-      invalidate();
-    } catch (e) {
-      setError(e);
-    }
-  }
-  return (
-    <>
-      <PageHeading title="simulation.title" subtitle="simulation.subtitle">
-        <ActionDialog
-          label="simulation.reset"
-          danger
-          onConfirm={async (reason) => {
-            if (reason !== t("simulation.resetConfirm"))
-              throw new Error("CONFIRMATION_REQUIRED");
-            await api("/simulator/reset", { confirmation: reason });
-            invalidate();
-          }}
-          initialReason=""
-        >
-          <p>{t("simulation.resetPrompt")}</p>
-        </ActionDialog>
-      </PageHeading>
-      <ErrorBox error={error} />
-      <section className="panel scenario-seed">
-        <label>
-          {t("simulation.seed")}
-          <input
-            type="number"
-            min="0"
-            max="2147483647"
-            value={seed}
-            onChange={(e) => setSeed(Number(e.target.value))}
-          />
-        </label>
-        <span>{t("simulation.advance")}</span>
-      </section>
-      <div className="scenario-grid">
-        {data.data?.items
-          .filter((s: any) => !slug || s.slug === slug)
-          .map((s: any, index: number) => (
-            <article key={s.id} className="panel scenario-card">
-              <span className="scenario-number">
-                {String(index + 1).padStart(2, "0")}
-              </span>
-              <div>
-                <a href={"/simulator/scenarios/" + s.slug}>
-                  <h2>{s.title}</h2>
-                </a>
-                <p className="fine-print mono">
-                  {s.slug} · {t("legal.short")}
-                </p>
-                <p className="fine-print">{s.seed_json.description}</p>
-                <ul className="scenario-goals">
-                  {s.expected_results_json.assertions.map((g: string) => (
-                    <li key={g}>{g}</li>
-                  ))}
-                </ul>
-              </div>
-              <button className="secondary" onClick={() => run(s.slug)}>
-                {t("simulation.run")}
-                <ArrowRight size={15} />
-              </button>
-            </article>
-          ))}
-      </div>
-      <section className="panel info-panel">
-        <h2>{t("simulation.runs")}</h2>
-        <button
-          className="secondary"
-          disabled={!data.data}
-          onClick={() => {
-            const content = {
-              application: "NEXUS — Response Intelligence",
-              simulation: true,
-              warning: t("legal.warning"),
-              generatedAt: new Date().toISOString(),
-              selectedSeed: seed,
-              scenarios: data.data.items,
-              runs: data.data.runs,
-            };
-            const url = URL.createObjectURL(
-              new Blob([JSON.stringify(content, null, 2)], {
-                type: "application/json",
-              }),
-            );
-            const a = document.createElement("a");
-            a.href = url;
-            a.download = "nexus-fictional-scenario-seeds.json";
-            a.click();
-            URL.revokeObjectURL(url);
-          }}
-        >
-          {t("simulation.exportSeeds")}
-        </button>
-        {data.data?.runs.map((r: any) => (
-          <div key={r.id} className="scenario-run">
-            <div>
-              <strong>{r.results_json?.slug}</strong>
-              <small>
-                {r.results_json?.reference} · {t("simulation.seed")}: {r.seed} ·{" "}
-                {r.results_json?.step || 0}/{r.results_json?.steps?.length || 8}
-              </small>
-            </div>
-            <button
-              disabled={!!r.completed_at}
-              onClick={async () => {
-                try {
-                  await api("/simulator/scenarios/" + r.id + "/step", {});
-                  invalidate();
-                } catch (e) {
-                  setError(e);
-                }
-              }}
-            >
-              {t("simulation.step")}
-            </button>
-          </div>
-        ))}
-      </section>
-      <section className="panel info-panel">
-        <h2>{t("simulation.faults")}</h2>
-        <div className="fault-grid">
-          {[
-            "worker_paused",
-            "drop_notifications",
-            "map_unavailable",
-            "stale_locations",
-            "unit_unavailable",
-            "ack_delay_ms",
-          ].map((fault) => (
-            <div className="fault-control" key={fault}>
-              <div>
-                <strong>{t("simulation." + fault)}</strong>
-                <small>
-                  {network.data?.settings[fault] === undefined
-                    ? "—"
-                    : t(
-                        network.data.settings[fault]
-                          ? "simulation.enabled"
-                          : "simulation.disabled",
-                      )}
-                </small>
-              </div>
-              <button
-                onClick={async () => {
-                  try {
-                    await api("/simulator/faults", { fault, enabled: true });
-                    invalidate();
-                  } catch (e) {
-                    setError(e);
-                  }
-                }}
-              >
-                {t("simulation.enable")}
-              </button>
-              <button
-                onClick={async () => {
-                  try {
-                    await api("/simulator/faults", { fault, enabled: false });
-                    invalidate();
-                  } catch (e) {
-                    setError(e);
-                  }
-                }}
-              >
-                {t("simulation.disable")}
-              </button>
-            </div>
-          ))}
-        </div>
-        <button
-          className="secondary"
-          onClick={async () => {
-            try {
-              setTamper(await api("/simulator/tamper-demo"));
-            } catch (e) {
-              setError(e);
-            }
-          }}
-        >
-          {t("assurance.tamper")}
-        </button>
-        {tamper && (
-          <p className="teal">
-            {t("assurance.tamperInfo")} · {String(tamper.original?.valid)} →{" "}
-            {String(tamper.tamperedCopy?.valid)}
-          </p>
         )}
       </section>
     </>

@@ -90,7 +90,9 @@ test("CAD login, live queue, filters, map fallback and unit board work", async (
     .getByRole("textbox", { name: "Search incidents" })
     .fill("NO-MATCH-REFERENCE");
   await expect(
-    page.getByText("No incidents match these filters."),
+    page
+      .locator(".incident-queue")
+      .getByText("No incidents match these filters."),
   ).toBeVisible();
   await page.getByRole("textbox", { name: "Search incidents" }).fill("");
   await noOverflow(page);
@@ -117,7 +119,12 @@ test("supervisor audit, replay and redacted exports use server records", async (
   const confirmed = await metrics.json();
   expect(confirmed.sampleSize).toBeGreaterThan(0);
   expect(confirmed.sampleSize).toBe(confirmed.items.length);
-  await expect(page.locator("tbody tr")).toHaveCount(confirmed.sampleSize);
+  await expect(page.locator("tbody tr")).toHaveCount(
+    Math.min(10, confirmed.sampleSize),
+  );
+  await expect(page.locator(".coverage-heading")).toContainText(
+    `${confirmed.sampleSize} incidents in the agency sample`,
+  );
   await expect(page.locator("tbody tr").first()).toContainText(
     confirmed.items[0].public_reference,
   );
@@ -151,7 +158,7 @@ test("admin creates deterministic scenario, advances commands and toggles map fa
 }) => {
   await page.setViewportSize({ width: 1440, height: 900 });
   await signIn(page, "admin");
-  await expect(page.locator(".scenario-card")).toHaveCount(9);
+  await expect(page.locator(".scenario-card")).toHaveCount(4);
   await page.screenshot({
     path: "artifacts/screenshots/simulator-1440.png",
     fullPage: true,
@@ -163,6 +170,10 @@ test("admin creates deterministic scenario, advances commands and toggles map fa
   const seedExport = await exportDownload;
   const exported = JSON.parse(readFileSync((await seedExport.path())!, "utf8"));
   expect(exported.scenarios).toHaveLength(9);
+  expect(exported.runScope).toMatchObject({ offset: 0, limit: 30 });
+  expect(exported.runs).toHaveLength(
+    Math.min(30, exported.runScope.totalMatching),
+  );
   expect(exported.simulation).toBe(true);
   expect(JSON.stringify(exported)).not.toMatch(
     /receiptToken|receipt_token_digest/,
@@ -174,6 +185,7 @@ test("admin creates deterministic scenario, advances commands and toggles map fa
         .includes("/api/v1/simulator/scenarios/traffic-osogbo-main/run") &&
       response.request().method() === "POST",
   );
+  await page.getByRole("textbox", { name: "Search scenarios" }).fill("Traffic");
   await page
     .locator(".scenario-card")
     .filter({ hasText: /Traffic.*Osogbo main/i })
@@ -187,6 +199,10 @@ test("admin creates deterministic scenario, advances commands and toggles map fa
     .filter({ hasText: fixture.results_json.reference });
   await expect(run).toBeVisible();
   await run.getByRole("button").click();
+  await page
+    .locator(".selected-run")
+    .getByRole("button", { name: "Advance recorded workflow" })
+    .click();
   await expect(run).toContainText("1/8");
   const map = page
     .locator(".fault-control")
@@ -394,6 +410,32 @@ test("offline responder acceptance stays local, reconnects, and completes one in
     await expect(
       field.getByRole("button", { name: "Report en route", exact: true }),
     ).toBeVisible({ timeout: 20000 });
+    for (const [width, height] of [
+      [320, 640],
+      [375, 812],
+      [390, 844],
+      [768, 1024],
+    ]) {
+      await field.setViewportSize({ width, height });
+      await field.evaluate(() =>
+        window.scrollTo(0, document.body.scrollHeight),
+      );
+      const command = field.getByRole("button", {
+        name: "Report en route",
+        exact: true,
+      });
+      const bounds = await command.boundingBox();
+      const nav = await field.locator(".field-nav").boundingBox();
+      expect(bounds!.y + bounds!.height).toBeLessThan(nav!.y - 8);
+      await command.focus();
+      await expect(command).toBeFocused();
+      await noOverflow(field);
+      await field.screenshot({
+        path: `artifacts/screenshots/polish-responder-mission-${width}.png`,
+        animations: "disabled",
+      });
+    }
+    await field.setViewportSize({ width: 390, height: 844 });
     await confirm(field, "Report en route", "Fictional travel reported");
     await expect(
       field.getByRole("button", { name: "Report arrival", exact: true }),

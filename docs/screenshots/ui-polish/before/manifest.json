@@ -1,0 +1,113 @@
+{
+  "capturedAt": "2026-10-22T11:31:09.983Z",
+  "sourceCommit": "3af9f3ef38cfc802fc55a99e0428fb30403535a3",
+  "workingTree": "modified",
+  "data": "Unmocked, fictional local research history; not a production or physical-outcome verification.",
+  "captures": [
+    {
+      "name": "citizen",
+      "path": "/",
+      "width": 1440,
+      "height": 900,
+      "file": "citizen-1440.png"
+    },
+    {
+      "name": "citizen",
+      "path": "/",
+      "width": 768,
+      "height": 1024,
+      "file": "citizen-768.png"
+    },
+    {
+      "name": "citizen",
+      "path": "/",
+      "width": 375,
+      "height": 812,
+      "file": "citizen-375.png"
+    },
+    {
+      "name": "dispatcher",
+      "path": "/cad/live",
+      "width": 1440,
+      "height": 900,
+      "file": "dispatcher-1440.png"
+    },
+    {
+      "name": "dispatcher",
+      "path": "/cad/live",
+      "width": 768,
+      "height": 1024,
+      "file": "dispatcher-768.png"
+    },
+    {
+      "name": "dispatcher",
+      "path": "/cad/live",
+      "width": 375,
+      "height": 812,
+      "file": "dispatcher-375.png"
+    },
+    {
+      "name": "responder",
+      "path": "/responder",
+      "width": 1440,
+      "height": 900,
+      "file": "responder-1440.png"
+    },
+    {
+      "name": "responder",
+      "path": "/responder",
+      "width": 768,
+      "height": 1024,
+      "file": "responder-768.png"
+    },
+    {
+      "name": "responder",
+      "path": "/responder",
+      "width": 390,
+      "height": 844,
+      "file": "responder-390.png"
+    },
+    {
+      "name": "supervisor",
+      "path": "/assurance",
+      "width": 1440,
+      "height": 900,
+      "file": "supervisor-1440.png"
+    },
+    {
+      "name": "supervisor",
+      "path": "/assurance",
+      "width": 768,
+      "height": 1024,
+      "file": "supervisor-768.png"
+    },
+    {
+      "name": "supervisor",
+      "path": "/assurance",
+      "width": 375,
+      "height": 812,
+      "file": "supervisor-375.png"
+    },
+    {
+      "name": "administrator",
+      "path": "/simulator",
+      "width": 1440,
+      "height": 900,
+      "file": "administrator-1440.png"
+    },
+    {
+      "name": "administrator",
+      "path": "/simulator",
+      "width": 768,
+      "height": 1024,
+      "file": "administrator-768.png"
+    },
+    {
+      "name": "administrator",
+      "path": "/simulator",
+      "width": 375,
+      "height": 812,
+      "file": "administrator-375.png"
+    }
+  ]
+}

@@ -75,7 +75,7 @@ export async function requireReceipt(
   if (!i) throw new Fault(404, "RECEIPT_INVALID_OR_EXPIRED");
   return i;
 }
-export async function createReport(req: any) {
+export async function createReport(req: any, simulationAgencyId?: string) {
   const body = createIncident.parse(req.body);
   if (!process.env.RECEIPT_KEY) throw new Fault(503, "RECEIPT_KEY_REQUIRED");
   const token = createHmac("sha256", process.env.RECEIPT_KEY)
@@ -105,8 +105,15 @@ export async function createReport(req: any) {
           simulation: true,
         };
       }
+      // Only internal scenario creation supplies an agency. A renamed or added
+      // tenant must never redirect public demo receipts by alphabetical order.
       const agency = (
-        await db.query("SELECT id FROM agencies ORDER BY demo_name LIMIT 1")
+        await db.query(
+          simulationAgencyId
+            ? "SELECT id FROM agencies WHERE id=$1"
+            : "SELECT agency_id AS id FROM users WHERE username='dispatcher' AND role='dispatcher'",
+          simulationAgencyId ? [simulationAgencyId] : [],
+        )
       ).rows[0];
       if (!agency) throw new Fault(503, "SIMULATION_NOT_SEEDED");
       const reference = "NXS-" + randomBytes(5).toString("hex").toUpperCase();
@@ -454,7 +461,7 @@ export async function perform(req: any, id: string, action: string) {
 }
 async function releaseUnit(db: pg.PoolClient, id: string) {
   await db.query(
-    "UPDATE units SET dispatch_status='AVAILABLE',status_updated_at=now() WHERE id=$1",
+    "UPDATE units SET dispatch_status=CASE WHEN EXISTS(SELECT 1 FROM simulation_unit_faults f WHERE f.agency_id=units.agency_id AND f.unit_unavailable) THEN 'OFFLINE' ELSE 'AVAILABLE' END,status_updated_at=now() WHERE id=$1",
     [id],
   );
 }
@@ -523,11 +530,11 @@ export async function runScenario(req: any, slug: string, seed: number) {
     )
   )[0];
   await sql(
-    "UPDATE units SET dispatch_status=CASE WHEN callsign='OSG • 01' THEN 'BUSY' ELSE 'AVAILABLE' END,status_updated_at=now() WHERE agency_id=$1 AND NOT EXISTS(SELECT 1 FROM assignments a WHERE a.unit_id=units.id AND a.status IN ('OFFERED','ACCEPTED','ACTIVE'))",
+    "UPDATE units SET dispatch_status=CASE WHEN EXISTS(SELECT 1 FROM simulation_unit_faults f WHERE f.agency_id=units.agency_id AND f.unit_unavailable) THEN 'OFFLINE' WHEN callsign='OSG • 01' THEN 'BUSY' ELSE 'AVAILABLE' END,status_updated_at=now() WHERE agency_id=$1 AND NOT EXISTS(SELECT 1 FROM assignments a WHERE a.unit_id=units.id AND a.status IN ('OFFERED','ACCEPTED','ACTIVE'))",
     [req.user.agency_id],
   );
   await sql(
-    "UPDATE unit_current_locations l SET recorded_at=CASE WHEN u.callsign='OSG • 02' THEN now()-interval '30 minutes' ELSE now() END FROM units u WHERE u.id=l.unit_id AND u.agency_id=$1",
+    "UPDATE unit_current_locations l SET recorded_at=CASE WHEN u.callsign='OSG • 02' OR EXISTS(SELECT 1 FROM simulation_unit_faults f WHERE f.agency_id=u.agency_id AND f.stale_locations) THEN now()-interval '30 minutes' ELSE now() END FROM units u WHERE u.id=l.unit_id AND u.agency_id=$1",
     [req.user.agency_id],
   );
   const fixture = fixtures[slug as keyof typeof fixtures];
@@ -547,7 +554,7 @@ export async function runScenario(req: any, slug: string, seed: number) {
     get: () => `scenario-${run.id}`,
     correlationId: req.correlationId,
   };
-  const report = await createReport(request);
+  const report = await createReport(request, req.user.agency_id);
   const i = (
     await sql("SELECT id FROM incidents WHERE public_reference=$1", [
       report.reference,
@@ -555,7 +562,7 @@ export async function runScenario(req: any, slug: string, seed: number) {
   )[0];
   if (slug === "assignment-declined") {
     await sql(
-      "UPDATE unit_current_locations SET recorded_at=now() WHERE unit_id=(SELECT id FROM units WHERE callsign='OSG • 02' AND agency_id=$1)",
+      "UPDATE unit_current_locations SET recorded_at=now() WHERE unit_id=(SELECT id FROM units WHERE callsign='OSG • 02' AND agency_id=$1) AND NOT EXISTS(SELECT 1 FROM simulation_unit_faults f WHERE f.agency_id=$1 AND f.stale_locations)",
       [req.user.agency_id],
     );
     await sql(
@@ -578,11 +585,14 @@ export async function runScenario(req: any, slug: string, seed: number) {
   let secondIncidentId = null;
   const duplicateRetryReferences: string[] = [];
   if (["two-incidents-one-unit", "duplicate-alerts"].includes(slug)) {
-    const second = await createReport({
-      ...request,
-      body: { ...request.body, client_request_id: randomUUID() },
-      get: () => `scenario-second-${run.id}`,
-    });
+    const second = await createReport(
+      {
+        ...request,
+        body: { ...request.body, client_request_id: randomUUID() },
+        get: () => `scenario-second-${run.id}`,
+      },
+      req.user.agency_id,
+    );
     secondIncidentId = (
       await sql("SELECT id FROM incidents WHERE public_reference=$1", [
         second.reference,
@@ -592,7 +602,7 @@ export async function runScenario(req: any, slug: string, seed: number) {
   if (slug === "duplicate-alerts") {
     for (let retry = 0; retry < 5; retry++)
       duplicateRetryReferences.push(
-        String((await createReport(request)).reference),
+        String((await createReport(request, req.user.agency_id)).reference),
       );
   }
   const results = {
@@ -620,9 +630,13 @@ export async function runScenario(req: any, slug: string, seed: number) {
 }
 export async function advanceScenario(req: any, runId: string) {
   const run = (
-    await sql("SELECT * FROM scenario_runs WHERE id=$1", [runId])
+    await sql(
+      "SELECT r.* FROM scenario_runs r JOIN users u ON u.id=r.started_by WHERE r.id=$1 AND u.agency_id=$2",
+      [runId, req.user.agency_id],
+    )
   )[0];
   if (!run) throw new Fault(404, "RUN_NOT_FOUND");
+  if (run.stopped_at) throw new Fault(409, "RUN_STOPPED_BY_RESET");
   const i = await getIncident(run.results_json.incidentId, req.user);
   const step = run.results_json.step || 0;
   const actions =

@@ -70,6 +70,9 @@ export const en = {
     pagination: "Page {{page}}",
     next: "Next page",
     previous: "Previous page",
+    clearFilters: "Clear filters",
+    showing: "Showing {{from}}–{{to}} of {{total}}",
+    noMatches: "No records match this view. Try another filter.",
   },
   legal: {
     warning:
@@ -247,6 +250,31 @@ export const en = {
     confirmed: "Confirmed server events",
     assignmentHistory: "Assignment lineage",
     timing: "Reported timing is not independently verified arrival.",
+    locationBoard: "Location intelligence",
+    researchArea: "Osogbo research area",
+    roadLayerMissing: "Road layer unavailable",
+    locationFallback: "Recorded locations remain available",
+    locationFallbackInfo:
+      "Browse fictional landmarks and unit states below. This view contains no roads, routes, live traffic or arrival estimates.",
+    viewRecords: "Records in this view",
+    located: "With coordinates",
+    freshUnits: "Fresh unit positions",
+    locationList: "Recorded incident locations",
+    unitLegend: "Unit position key",
+    positionOnly: "Location freshness does not establish dispatch eligibility.",
+    coordinateLabel: "{{latitude}}° N · {{longitude}}° E",
+    coordinateMissing: "Coordinates not recorded",
+    loadingMap: "Checking map data…",
+    filterQueue: "Refine queue",
+    includeClosed: "Include closed and cancelled records",
+    locationMore:
+      "Showing {{shown}} of {{total}} locations. Use queue filters to narrow the view.",
+    filterCount: "{{count}} filters applied",
+    queueScope: "Matching records · server state",
+    focusIncident: "Inspect selected incident",
+    openFirst: "Open first matching record",
+    queueHint: "Choose a record to review its timeline and dispatch options.",
+    unavailablePositions: "Stale or missing positions",
   },
   citizen: {
     eyebrow: "A RESEARCH SIMULATION, BUILT AROUND CLARITY",
@@ -301,6 +329,17 @@ export const en = {
     howBody:
       "Create a fictional request. A demo dispatcher reviews it and offers it to a fictional unit. A responder must acknowledge and explicitly report progress before your timeline changes.",
     new: "Create another fictional scenario",
+    privacyBefore:
+      "Fictional details only. Your private timeline starts after submission.",
+    journeyLabel: "A journey you can follow",
+    journeyNote: "How the simulation works · no request submitted",
+    journeyRequest: "You create a fictional request",
+    journeyRequestDetail: "A clear record of what you shared.",
+    journeyReview: "A person reviews each step",
+    journeyReviewDetail: "An offer waits for acknowledgement.",
+    journeyTimeline: "You follow confirmed progress",
+    journeyTimelineDetail: "Only recorded updates reach your timeline.",
+    journeyPromise: "Clarity at every connection.",
   },
   responder: {
     title: "Ready for the next assignment.",
@@ -334,6 +373,17 @@ export const en = {
     membership: "Simulated unit memberships",
     session: "Sign-out clears pending commands on this device.",
     retryable: "Delivery failed; safe to retry with the same key.",
+    incoming: "Incoming requests",
+    incomingNote:
+      "An offer needs your explicit acknowledgement. Check its expiry before responding.",
+    currentNote: "Accepted assignments awaiting your next confirmed update.",
+    noCurrent: "No active assignment. Incoming offers appear separately below.",
+    noIncoming: "No incoming offers at the last server refresh.",
+    historyNote:
+      "Completed, declined, expired and withdrawn assignments. No action is required.",
+    historyCount: "Assignment history ({{count}})",
+    historyLimit:
+      "Most recent 100 assignments, including current and incoming requests.",
   },
   assurance: {
     exportMetadata:
@@ -387,6 +437,38 @@ export const en = {
       "Only a copied event is modified. Source records remain untouched.",
     definitions: "Metric definitions",
     noEvents: "No recorded events yet.",
+    mean: "Mean recorded duration",
+    seconds: "{{value}} s",
+    metricCoverage: "{{measured}} of {{total}} measured",
+    metricMissing: "{{count}} unmeasured",
+    fromReceipt: "Server receipt → milestone",
+    fromOffer: "Assignment offer → acknowledgement",
+    coverageInfo:
+      "All retained incidents in your agency form this sample. Each mean uses only records with both required server milestones; missing records are excluded, never treated as zero.",
+    firstMilestoneInfo:
+      "One interval per incident, using its first recorded milestone. Acknowledgement starts at the offer belonging to the first accepted assignment.",
+    acknowledgedOffer: "Acknowledged offer: {{time}}",
+    evidenceBoundary: "Recorded timing, not physical response",
+    evidenceInfo:
+      "Simulated workflow events measure server-recorded intervals. Reported arrival is a responder statement. No verified arrival, live-service comparison or performance score is implied.",
+    measurementRecords: "Explore the measurements",
+    scrollHint:
+      "Scroll horizontally for all milestones. Keyboard: focus the table, then use arrow keys.",
+    durationView: "Durations (seconds)",
+    timestampView: "Server timestamps (Lagos)",
+    sampleSearch: "Find a measured incident",
+    coverageFilter: "Measurement availability",
+    allRecords: "All incident records",
+    gapsOnly: "Records with missing milestones",
+    completeOnly: "All four milestones recorded",
+    sampleTotal: "{{count}} incidents in the agency sample",
+    inspectReplay: "Open incident replay",
+    replayContext:
+      "Sequence playback · one recorded event per second; not real elapsed time",
+    replayElapsed: "{{seconds}} s since server receipt",
+    previousEvent: "Previous event",
+    nextEvent: "Next event",
+    replaySelected: "Selected event {{current}} of {{total}}",
   },
   simulation: {
     exportSeeds: "Export fictional scenario seeds and runs",
@@ -419,6 +501,46 @@ export const en = {
     seeded: "Fixture created on the shared server",
     advance:
       "Steps commit actual commands under scoped demo roles. They never contact real services.",
+    catalogue: "Choose a research question",
+    search: "Search scenarios",
+    purpose: "Research purpose",
+    allPurposes: "All scenarios",
+    coordination: "Coordination & eligibility",
+    continuity: "Connectivity & continuity",
+    integrity: "Integrity & provenance",
+    catalogueNote:
+      "Explore a fixture, inspect its expected checks, then create a seeded run. Creating a fixture does not complete its workflow.",
+    inspectGoals: "Expected checks",
+    allScenarios: "Back to all scenarios",
+    selectedRun: "Run workspace",
+    selectRun:
+      "Select a run to inspect its progress and advance its next recorded step.",
+    runHistory: "Run history",
+    runState: "Run state",
+    activeRuns: "In progress",
+    completedRuns: "Completed",
+    stoppedRuns: "Stopped by reset",
+    scenarioFilter: "Scenario",
+    inspectRun: "Inspect run",
+    nextStep: "Next recorded step",
+    completed: "Workflow completed",
+    started: "Started",
+    runProgress: "{{step}} of {{total}} steps recorded",
+    runScope:
+      "History is paginated. The export includes the latest 30 matching runs and all nine fixture definitions, with its count and limit declared.",
+    faultInfo:
+      "Controls show persisted injection state, not general system health. Stale positions can also occur naturally. Unit faults apply only to this fictional agency; occupied units keep their assignment.",
+    faultLoading: "Checking persisted state…",
+    faultSaving: "Applying server command…",
+    fixtureSteps_one: "{{count}} workflow step",
+    fixtureSteps_other: "{{count}} workflow steps",
+    fixtureIncomplete:
+      "Fixture details are incomplete. Inspect the retained run; no next step can be inferred.",
+    stale_locationsInfo:
+      "While enabled, synthetic positions remain stale through heartbeats. Disable refreshes them.",
+    unit_unavailableInfo:
+      "Unreserved units stay offline, including after release. Disable returns unreserved units to available.",
+    acknowledgementDelay: "Persisted delay: {{milliseconds}} ms",
   },
   accessibility: {
     skip: "Skip to main content",

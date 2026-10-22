@@ -1,0 +1,46 @@
+$ tsx tools/test-database.ts && vitest run
+
+ RUN  v3.2.7 /workspace/NEXUS
+
+stdout | tests/integration.test.ts
+Synthetic accounts, units and nine scenarios seeded.
+
+ ✓ tests/integration.test.ts (24 tests) 2065ms
+   ✓ persistent secured workflow > produces redacted CSV/PDF and signed checkpoints with truthful metrics  569ms
+stdout | tests/audit.test.ts
+Audit signing key installed: ed25519-b1cf5fbefa6951834567e7e7 (private material was not logged)
+
+stdout | tests/audit.test.ts
+Synthetic accounts, units and nine scenarios seeded.
+
+stdout | tests/audit.test.ts > retains verification across rotation, binds checkpoint linkage and rejects revoked/unknown keys
+Audit signing key installed: ed25519-2314fb272d3c762422e026af (private material was not logged)
+
+ ✓ tests/audit.test.ts (4 tests) 2744ms
+   ✓ independently verifies an API-exported signed history with Node's standard library  312ms
+   ✓ rejects envelope changes, modified/rehashed history, truncation and signature substitution  907ms
+   ✓ retains verification across rotation, binds checkpoint linkage and rejects revoked/unknown keys  1077ms
+stdout | tests/scenarios.test.ts
+Synthetic accounts, units and nine scenarios seeded.
+
+ ✓ tests/scenarios.test.ts (45 tests) 2645ms
+stdout | tests/realtime.test.ts
+Synthetic accounts, units and nine scenarios seeded.
+
+stdout | tests/realtime.test.ts
+NEXUS API listening on 4200
+
+ ✓ tests/realtime.test.ts (5 tests) 1267ms
+   ✓ replaces a terminated notification connection and resumes authoritative realtime delivery  570ms
+ ✓ tests/localisation.test.ts (2 tests) 85ms
+ ✓ tests/routing.test.ts (2 tests) 43ms
+stdout | tests/domain.test.ts
+🌐 i18next is made possible by our own product, Locize — consider powering your project with managed localization (AI, CDN, integrations): https://locize.com 💙
+
+ ✓ tests/domain.test.ts (5 tests) 6ms
+ ✓ tests/measurements.test.ts (2 tests) 2ms
+
+ Test Files  8 passed (8)
+      Tests  89 passed (89)
+   Start at  12:26:08
+   Duration  11.03s (transform 265ms, setup 0ms, collect 1.12s, tests 8.86s, environment 1ms, prepare 291ms)

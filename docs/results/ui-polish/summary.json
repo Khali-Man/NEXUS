@@ -1,0 +1,68 @@
+{
+  "recordedAt": "2026-10-22T12:33:17.560241+00:00",
+  "baseCommit": "3af9f3ef38cfc802fc55a99e0428fb30403535a3",
+  "scope": "Linux research simulation; source and local evidence are committed together. Remote CI outcome must be checked on the resulting commit.",
+  "unitAndIntegration": {
+    "passed": 89,
+    "failed": 0,
+    "skipped": 0,
+    "files": 8
+  },
+  "browser": {
+    "startTime": "2026-10-22T12:27:31.326Z",
+    "duration": 66612.19499999999,
+    "expected": 24,
+    "skipped": 0,
+    "unexpected": 0,
+    "flaky": 0
+  },
+  "benchmark": {
+    "loadCases": 15,
+    "submissions": 8000,
+    "apiErrors": 0,
+    "duplicateReferences": 0,
+    "faultCases": 15,
+    "allReplayComplete": true,
+    "allStaleCommandsRejected": true
+  },
+  "k6": {
+    "requests": 500,
+    "failedRequests": 0,
+    "checks": 1000,
+    "passedChecks": 1000
+  },
+  "databaseRestart": {
+    "at": "2026-10-22T12:30:35.387Z",
+    "databaseRestarted": true,
+    "apiRecovered": true,
+    "sessionRecovered": true,
+    "commandCommitted": true,
+    "workerNotificationRecovered": true,
+    "elapsedMs": 934.8303289999999
+  },
+  "notVerified": [
+    "Windows 11",
+    "non-Chromium and native physical devices",
+    "manual screen-reader review",
+    "real Osogbo road data/route accuracy",
+    "physical response outcomes"
+  ],
+  "commands": [
+    "pnpm install --frozen-lockfile",
+    "pnpm setup",
+    "pnpm db:migrate",
+    "pnpm lint",
+    "pnpm typecheck",
+    "pnpm test",
+    "pnpm test:routing",
+    "pnpm build",
+    "pnpm start",
+    "pnpm test:e2e",
+    "pnpm exec tsx tools/capture-ui.ts before",
+    "pnpm exec tsx tools/capture-ui.ts after",
+    "pnpm test:performance",
+    "pnpm test:k6",
+    "pnpm test:db-restart"
+  ],
+  "logHandling": "Trailing whitespace and final blank lines normalized; result values unchanged. PNGs are unaltered."
+}

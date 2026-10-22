@@ -1,5 +1,7 @@
 # Browser captures — NEXUS — Response Intelligence
 
+**Current interface:** [22 October before/after review, all five workspaces at desktop/tablet/mobile sizes](UI_POLISH.md#before-and-after-captures). The captures below are retained as historical evidence.
+
 Actual production Chromium screenshots captured 19 October 2026, then visually reviewed. Images are unaltered and use fictional data only. The citizen app is light; operations, responder, assurance and administrator remain dark. The visible simulation warnings are retained. These captures do not establish Windows or real-city routing verification. The dispatcher map honestly shows unavailable road data and a geographic context fallback.
 
 | Workspace     | Capture                                               | Browser viewport       |

@@ -7,9 +7,8 @@ import {
   CheckCheck,
   ChevronLeft,
   Clipboard,
-  Compass,
   Eye,
-  MapPin,
+  Compass,
   Radio,
   ShieldCheck,
 } from "lucide-react";
@@ -139,12 +138,21 @@ function CitizenHome({ start }: { start: () => void }) {
             {t("citizen.start")}
             <ArrowRight size={18} />
           </button>
-          <button className="text-link" onClick={() => setHow(!how)}>
+          <button
+            className="text-link"
+            aria-expanded={how}
+            aria-controls="journey-explanation"
+            onClick={() => setHow(!how)}
+          >
             {t("citizen.how")}
             <ArrowUpRight size={15} />
           </button>
         </div>
-        {how && <div className="how-explanation">{t("citizen.howBody")}</div>}
+        {how && (
+          <div id="journey-explanation" className="how-explanation">
+            {t("citizen.howBody")}
+          </div>
+        )}
         <div className="trust-row">
           <span>
             <ShieldCheck size={16} />
@@ -152,31 +160,50 @@ function CitizenHome({ start }: { start: () => void }) {
           </span>
           <span>
             <Eye size={16} />
-            {t("citizen.private")}
+            {t("citizen.privacyBefore")}
           </span>
         </div>
       </div>
-      <div className="citizen-visual" aria-hidden="true">
-        <div className="citizen-orbit orbit-1" />
-        <div className="citizen-orbit orbit-2" />
-        <div className="citizen-orbit orbit-3" />
-        <div className="journey-symbol">
-          <Compass size={60} strokeWidth={1.2} />
+      <aside className="citizen-journey" aria-label={t("citizen.journeyLabel")}>
+        <div className="journey-heading">
+          <span className="journey-linked" aria-hidden="true">
+            <i />
+            <i />
+            <i />
+          </span>
+          <p>{t("citizen.journeyLabel")}</p>
         </div>
-        <div className="visual-caption">
-          <span>{t("common.wordmark")}</span>
-          <small>{t("common.independent")}</small>
+        <ol className="journey-path">
+          {[
+            [
+              Clipboard,
+              "citizen.journeyRequest",
+              "citizen.journeyRequestDetail",
+            ],
+            [Radio, "citizen.journeyReview", "citizen.journeyReviewDetail"],
+            [
+              CheckCheck,
+              "citizen.journeyTimeline",
+              "citizen.journeyTimelineDetail",
+            ],
+          ].map(([Icon, title, detail]: any, index) => (
+            <li key={title}>
+              <span className="journey-node" aria-hidden="true">
+                <Icon size={21} />
+              </span>
+              <div>
+                <small>{String(index + 1).padStart(2, "0")}</small>
+                <h2>{t(title)}</h2>
+                <p>{t(detail)}</p>
+              </div>
+            </li>
+          ))}
+        </ol>
+        <div className="journey-foot">
+          <strong>{t("citizen.journeyPromise")}</strong>
+          <small>{t("citizen.journeyNote")}</small>
         </div>
-        <span className="orbit-point point-a">
-          <MapPin size={20} />
-        </span>
-        <span className="orbit-point point-b">
-          <Radio size={20} />
-        </span>
-        <span className="orbit-point point-c">
-          <CheckCheck size={20} />
-        </span>
-      </div>
+      </aside>
     </section>
   );
 }

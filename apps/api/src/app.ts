@@ -294,7 +294,7 @@ async function listIncidents(req: Request) {
     category = String(req.query.category || ""),
     priority = String(req.query.priority || "");
   const rows = await sql(
-    `SELECT ${projection},count(*) OVER()::int AS total FROM incidents i WHERE agency_id=$1 AND ($2='' OR public_reference ILIKE '%'||$2||'%' OR description_sanitised ILIKE '%'||$2||'%' OR landmark ILIKE '%'||$2||'%') AND ($3='' OR status=$3) AND ($4='' OR category=$4) AND ($5='' OR priority=$5) AND ($6::timestamptz IS NULL OR created_at>=$6) AND ($7::timestamptz IS NULL OR created_at<=$7) ORDER BY created_at DESC LIMIT $8 OFFSET $9`,
+    `SELECT ${projection},count(*) OVER()::int AS total FROM incidents i WHERE agency_id=$1 AND ($2='' OR public_reference ILIKE '%'||$2||'%' OR description_sanitised ILIKE '%'||$2||'%' OR landmark ILIKE '%'||$2||'%') AND ($3='' OR status=$3) AND ($4='' OR category=$4) AND ($5='' OR priority=$5) AND ($6::timestamptz IS NULL OR created_at>=$6) AND ($7::timestamptz IS NULL OR created_at<=$7) AND (NOT $10::boolean OR status NOT IN ('CLOSED','CANCELLED')) ORDER BY created_at DESC LIMIT $8 OFFSET $9`,
     [
       req.user.agency_id,
       query,
@@ -305,6 +305,7 @@ async function listIncidents(req: Request) {
       req.query.to || null,
       limit,
       offset,
+      req.query.active === "true",
     ],
   );
   return {
@@ -398,6 +399,12 @@ route("get", "/cad/units", operators, async (req) => ({
   ),
 }));
 route("get", "/cad/network", all, async (req) => {
+  const unitFaults = (
+    await sql(
+      "SELECT stale_locations,unit_unavailable FROM simulation_unit_faults WHERE agency_id=$1",
+      [req.user.agency_id],
+    )
+  )[0];
   const outbox = (
     await sql(
       "SELECT count(*) FILTER(WHERE delivered_at IS NULL)::int AS pending,max(delivered_at) AS last_delivery,max(attempts) AS max_attempts FROM outbox_events o JOIN incidents i ON i.id=o.aggregate_id WHERE i.agency_id=$1",
@@ -409,10 +416,17 @@ route("get", "/cad/network", all, async (req) => {
     realtimeNotifications: Boolean(app.locals.realtimeReady?.()),
     outbox,
     settings: Object.fromEntries(
-      (await sql("SELECT * FROM simulation_settings")).map((r) => [
-        r.key,
-        r.value,
-      ]),
+      [
+        ...(await sql("SELECT * FROM simulation_settings")),
+        {
+          key: "stale_locations",
+          value: unitFaults?.stale_locations ?? false,
+        },
+        {
+          key: "unit_unavailable",
+          value: unitFaults?.unit_unavailable ?? false,
+        },
+      ].map((r) => [r.key, r.value]),
     ),
     serverTime: new Date().toISOString(),
   };
@@ -459,8 +473,8 @@ route("post", "/responder/heartbeat", ["responder"], async (req) => {
       [req.user.agency_id, req.user.id],
     );
     await db.query(
-      "UPDATE unit_current_locations l SET recorded_at=now() WHERE EXISTS(SELECT 1 FROM responder_unit_memberships m WHERE m.unit_id=l.unit_id AND m.user_id=$1 AND m.valid_from<=now() AND (m.valid_to IS NULL OR m.valid_to>now()))",
-      [req.user.id],
+      "UPDATE unit_current_locations l SET recorded_at=CASE WHEN EXISTS(SELECT 1 FROM simulation_unit_faults f WHERE f.agency_id=$2 AND f.stale_locations) THEN now()-interval '30 minutes' ELSE now() END WHERE EXISTS(SELECT 1 FROM responder_unit_memberships m WHERE m.unit_id=l.unit_id AND m.user_id=$1 AND m.valid_from<=now() AND (m.valid_to IS NULL OR m.valid_to>now()))",
+      [req.user.id, req.user.agency_id],
     );
     return { confirmedAt: new Date().toISOString(), simulation: true };
   });
@@ -495,7 +509,7 @@ route("get", "/responder/sync", ["responder"], async (req) => {
 });
 route("get", "/assurance/metrics", ["supervisor"], async (req) => {
   const rows = await sql(
-    `SELECT i.id,i.public_reference,i.created_at,i.status,min(e.server_occurred_at) FILTER(WHERE e.event_type='incident.triaged') AS triaged_at,min(e.server_occurred_at) FILTER(WHERE e.event_type='assignment.offered') AS offered_at,min(e.server_occurred_at) FILTER(WHERE e.event_type='assignment.accepted') AS accepted_at,min(e.server_occurred_at) FILTER(WHERE e.metadata->>'status'='ARRIVAL_REPORTED') AS arrived_at FROM incidents i LEFT JOIN incident_events e ON e.incident_id=i.id WHERE i.agency_id=$1 GROUP BY i.id ORDER BY i.created_at DESC`,
+    `SELECT i.id,i.public_reference,i.created_at,i.status,min(e.server_occurred_at) FILTER(WHERE e.event_type='incident.triaged') AS triaged_at,min(e.server_occurred_at) FILTER(WHERE e.event_type='assignment.offered') AS offered_at,min(e.server_occurred_at) FILTER(WHERE e.event_type='assignment.accepted') AS accepted_at,(SELECT a.offered_at FROM assignments a WHERE a.incident_id=i.id AND a.accepted_at IS NOT NULL ORDER BY a.accepted_at,a.id LIMIT 1) AS acknowledged_offer_at,min(e.server_occurred_at) FILTER(WHERE e.metadata->>'status'='ARRIVAL_REPORTED') AS arrived_at FROM incidents i LEFT JOIN incident_events e ON e.incident_id=i.id WHERE i.agency_id=$1 GROUP BY i.id ORDER BY i.created_at DESC`,
     [req.user.agency_id],
   );
   return {
@@ -628,7 +642,14 @@ route("get", "/assurance/reports/export", ["supervisor"], async (req, res) => {
       offer_seconds: seconds(at("assignment.offered")),
       acknowledgement_seconds: seconds(
         at("assignment.accepted"),
-        at("assignment.offered"),
+        events.find(
+          (e) =>
+            e.event_type === "assignment.offered" &&
+            e.metadata.assignmentId ===
+              events.find(
+                (accepted) => accepted.event_type === "assignment.accepted",
+              )?.metadata.assignmentId,
+        )?.server_occurred_at || null,
       ),
       reported_arrival_seconds: seconds(
         events.find((e) => e.metadata.status === "ARRIVAL_REPORTED")
@@ -690,12 +711,39 @@ const demoGuard = (_req: Request) => {
 };
 route("get", "/simulator/scenarios", ["admin"], async (req) => {
   demoGuard(req);
+  const query = z
+    .object({
+      limit: z.coerce.number().int().min(1).max(30).default(6),
+      offset: z.coerce.number().int().min(0).max(100000).default(0),
+      scenario: z.string().max(80).default(""),
+      runStatus: z.enum(["", "active", "completed", "stopped"]).default(""),
+    })
+    .parse(req.query);
+  const where = `FROM scenario_runs r JOIN users u ON u.id=r.started_by JOIN simulation_scenarios s ON s.id=r.scenario_id WHERE u.agency_id=$1 AND ($2='' OR s.slug=$2) AND ($3='' OR ($3='active' AND r.completed_at IS NULL AND r.stopped_at IS NULL) OR ($3='completed' AND r.completed_at IS NOT NULL) OR ($3='stopped' AND r.stopped_at IS NOT NULL))`;
+  const values = [req.user.agency_id, query.scenario, query.runStatus];
   return {
     items: await sql("SELECT * FROM simulation_scenarios ORDER BY slug"),
     runs: await sql(
-      "SELECT * FROM scenario_runs ORDER BY started_at DESC LIMIT 30",
+      `SELECT r.* ${where} ORDER BY r.started_at DESC,r.id DESC LIMIT $4 OFFSET $5`,
+      [...values, query.limit, query.offset],
     ),
+    totalRuns: (await sql(`SELECT count(*)::int AS count ${where}`, values))[0]
+      .count,
+    runLimit: query.limit,
+    runOffset: query.offset,
   };
+});
+route("get", "/simulator/runs/:id", ["admin"], async (req) => {
+  demoGuard(req);
+  const id = z.string().uuid().parse(req.params.id);
+  const run = (
+    await sql(
+      "SELECT r.* FROM scenario_runs r JOIN users u ON u.id=r.started_by WHERE r.id=$1 AND u.agency_id=$2",
+      [id, req.user.agency_id],
+    )
+  )[0];
+  if (!run) throw new Fault(404, "SCENARIO_RUN_NOT_FOUND");
+  return run;
 });
 route("post", "/simulator/scenarios/:id/run", ["admin"], async (req) => {
   demoGuard(req);
@@ -714,6 +762,13 @@ route("post", "/simulator/faults", ["admin"], async (req) => {
   demoGuard(req);
   const body = faultInput.parse(req.body);
   return idempotent(req, req.user.id, "fault", async (db) => {
+    if (body.fault === "stale_locations" || body.fault === "unit_unavailable") {
+      // Column name comes only from the strict fault enum, never request text.
+      await db.query(
+        `INSERT INTO simulation_unit_faults(agency_id,${body.fault}) VALUES($1,$2) ON CONFLICT(agency_id) DO UPDATE SET ${body.fault}=excluded.${body.fault},updated_at=now()`,
+        [req.user.agency_id, body.enabled],
+      );
+    }
     if (body.fault === "stale_locations")
       await db.query(
         "UPDATE unit_current_locations l SET recorded_at=CASE WHEN $2 THEN now()-interval '30 minutes' ELSE now() END FROM units u WHERE u.id=l.unit_id AND u.agency_id=$1",
@@ -783,6 +838,17 @@ route("post", "/simulator/reset", ["admin"], async (req) => {
     );
     await db.query(
       "UPDATE simulation_settings SET value='false' WHERE key IN ('worker_paused','map_unavailable','drop_notifications')",
+    );
+    await db.query(
+      "UPDATE simulation_settings SET value='0' WHERE key='ack_delay_ms'",
+    );
+    await db.query(
+      "UPDATE simulation_unit_faults SET stale_locations=false,unit_unavailable=false,updated_at=now() WHERE agency_id=$1",
+      [req.user.agency_id],
+    );
+    await db.query(
+      "UPDATE scenario_runs r SET stopped_at=now(),stop_reason='SIMULATION_RESET' FROM users u WHERE u.id=r.started_by AND u.agency_id=$1 AND r.completed_at IS NULL AND r.stopped_at IS NULL",
+      [req.user.agency_id],
     );
     return { ok: true, cancelled: active.length, historyPreserved: true };
   });

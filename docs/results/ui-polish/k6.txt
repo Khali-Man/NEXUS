@@ -1,0 +1,53 @@
+
+         /\      Grafana   /‾‾/
+    /\  /  \     |\  __   /  /
+   /  \/    \    | |/ /  /   ‾‾\
+  /          \   |   (  |  (‾)  |
+ / __________ \  |_|\_\  \_____/
+
+     execution: local
+        script: /scripts/load.k6.js
+        output: -
+
+     scenarios: (100.00%) 1 scenario, 100 max VUs, 1m30s max duration (incl. graceful stop):
+              * synthetic: 500 iterations shared among 100 VUs (maxDuration: 1m0s, gracefulStop: 30s)
+
+
+
+  █ THRESHOLDS
+
+    checks
+    ✓ 'rate==1' rate=100.00%
+
+    http_req_failed
+    ✓ 'rate==0' rate=0.00%
+
+
+  █ TOTAL RESULTS
+
+    checks_total.......: 1000    1602.289467/s
+    checks_succeeded...: 100.00% 1000 out of 1000
+    checks_failed......: 0.00%   0 out of 1000
+
+    ✓ server receipt committed
+    ✓ capability issued
+
+    HTTP
+    http_req_duration..............: avg=116.62ms min=60.8ms  med=96.58ms max=293.09ms p(90)=231.17ms p(95)=256.41ms
+      { expected_response:true }...: avg=116.62ms min=60.8ms  med=96.58ms max=293.09ms p(90)=231.17ms p(95)=256.41ms
+    http_req_failed................: 0.00%  0 out of 500
+    http_reqs......................: 500    801.144733/s
+
+    EXECUTION
+    iteration_duration.............: avg=117.19ms min=60.87ms med=96.68ms max=298.38ms p(90)=238.61ms p(95)=257.45ms
+    iterations.....................: 500    801.144733/s
+
+    NETWORK
+    data_received..................: 630 kB 1.0 MB/s
+    data_sent......................: 218 kB 349 kB/s
+
+
+
+
+running (0m00.6s), 000/100 VUs, 500 complete and 0 interrupted iterations
+synthetic ✓ [ 100% ] 100 VUs  0m00.6s/1m0s  500/500 shared iters

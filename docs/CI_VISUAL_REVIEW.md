@@ -1,5 +1,7 @@
 # Assurance CI snapshot diagnosis and five-workspace design review
 
+Historical review of the CI-only correction at `3af9f3e`. The subsequent work addressing all five UI findings is documented in [UI_POLISH.md](UI_POLISH.md), with fresh before/after captures and separate verification.
+
 This correction targets [GitHub Actions run 39325815728](https://github.com/Khali-Man/NEXUS/actions/runs/39325815728), commit `94062e1162844e49f7e7a06f296afbfb6167ef3d`. NEXUS remains a fictional research simulation. No product styling, branding, translations, backend behaviour or safeguards are changed by the correction.
 
 ## Artifact access and reproduced evidence
